@@ -1,0 +1,11 @@
+{
+  "name": "volt-bloc",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "@capacitor/android": "^8.6.2",
+    "@capacitor/cli": "^8.6.2",
+    "@capacitor/core": "^8.6.2",
+    "@capacitor-community/admob": "^8.4.2"
+  }
+}
