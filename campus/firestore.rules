@@ -30,5 +30,16 @@ service cloud.firestore {
       // Pas de modification (on supprime et on republie).
       allow update: if false;
     }
+
+    // Réglages (numéro admin, prix « à la une ») et publicités :
+    // lecture pour tous, modification uniquement depuis la console Firebase.
+    match /config/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+    match /pubs/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
   }
 }
