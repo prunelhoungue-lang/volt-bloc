@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1546d1">
+<title>Campus Services — entre étudiants</title>
+<style>
+:root{
+ --bg:#f4f6fb;--card:#fff;--ink:#141a2e;--mute:#5d6680;--line:#e3e7f1;
+ --pri:#1546d1;--pri2:#e8eefe;--wa:#1faa59;--danger:#d63a3a;--r:14px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,Roboto,sans-serif;font-size:15px}
+button,input,select,textarea{font:inherit;color:inherit}
+header{position:sticky;top:0;z-index:10;background:var(--pri);color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
+header h1{margin:0;font-size:20px;letter-spacing:.3px}
+header p{margin:2px 0 10px;font-size:13px;opacity:.85}
+.search{display:flex;gap:8px}
+.search input{flex:1;border:0;border-radius:12px;padding:11px 14px;background:#fff;color:var(--ink)}
+.search select{border:0;border-radius:12px;padding:0 10px;background:#fff;color:var(--ink)}
+.cats{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;scrollbar-width:none}
+.cats::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 13px;font-size:14px;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
+main{max-width:760px;margin:0 auto;padding:8px 16px 110px}
+.tabs{display:flex;gap:6px;margin:8px 0 12px}
+.tabs button{flex:1;border:0;background:transparent;padding:9px;border-radius:10px;color:var(--mute);font-weight:600;cursor:pointer}
+.tabs button.on{background:var(--pri2);color:var(--pri)}
+.count{font-size:13px;color:var(--mute);margin:0 0 8px}
+.list{display:grid;gap:10px}
+@media(min-width:620px){.list{grid-template-columns:1fr 1fr}}
+.ad{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:6px}
+.ad .top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.ad .tag{font-size:12px;font-weight:600;color:var(--pri);background:var(--pri2);border-radius:999px;padding:3px 9px;white-space:nowrap}
+.ad .ex{font-size:11px;color:var(--mute);border:1px dashed var(--line);border-radius:999px;padding:2px 7px}
+.ad h3{margin:2px 0 0;font-size:16px;line-height:1.3}
+.ad .d{margin:0;color:var(--mute);line-height:1.45;white-space:pre-wrap;word-break:break-word}
+.ad .meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--mute)}
+.ad .price{font-weight:700;color:var(--ink);font-size:16px}
+.ad .acts{display:flex;gap:8px;margin-top:6px}
+.b{border:0;border-radius:11px;padding:10px 12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
+.b.wa{background:var(--wa);color:#fff;flex:1}
+.b.gh{background:var(--pri2);color:var(--pri)}
+.b.del{background:#fdeaea;color:var(--danger)}
+.b.pri{background:var(--pri);color:#fff;width:100%;padding:13px}
+.empty{text-align:center;color:var(--mute);padding:40px 10px;background:var(--card);border:1px dashed var(--line);border-radius:var(--r)}
+.fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));border:0;border-radius:999px;background:var(--pri);color:#fff;font-weight:700;padding:15px 20px;box-shadow:0 8px 22px #1546d155;cursor:pointer;z-index:20}
+dialog{border:0;border-radius:18px;padding:0;width:min(94vw,520px);max-height:92vh;color:var(--ink);background:var(--card)}
+dialog::backdrop{background:#0b1230a8}
+.dlg{padding:18px;display:flex;flex-direction:column;gap:11px}
+.dlg h2{margin:0;font-size:18px}
+.dlg label{display:flex;flex-direction:column;gap:5px;font-size:13px;font-weight:600;color:var(--mute)}
+.dlg input,.dlg select,.dlg textarea{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff;color:var(--ink);font-weight:400}
+.dlg textarea{min-height:80px;resize:vertical}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.hint{font-size:12px;color:var(--mute);font-weight:400}
+.row{display:flex;gap:8px}
+.row .b{flex:1}
+.toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:#141a2e;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:50;max-width:90vw;text-align:center}
+.toast.show{opacity:1;transform:translateX(-50%)}
+.info{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;line-height:1.5;color:var(--mute);font-size:14px}
+.info h3{color:var(--ink);margin:0 0 6px;font-size:15px}
+.info ol{margin:6px 0 0;padding-left:20px}
+</style>
+</head>
+<body>
+<header>
+ <h1>🎓 Campus Services</h1>
+ <p>Fiches, jobs, répétiteurs, impression, fournitures… entre étudiants.</p>
+ <div class="search">
+  <input id="q" type="search" placeholder="Rechercher (ex : maths L1, calculatrice…)" aria-label="Rechercher">
+  <select id="sort" aria-label="Trier">
+   <option value="new">Récent</option>
+   <option value="low">Prix ↑</option>
+   <option value="high">Prix ↓</option>
+  </select>
+ </div>
+</header>
+
+<nav class="cats" id="cats" aria-label="Catégories"></nav>
+
+<main>
+ <div class="tabs" role="tablist">
+  <button class="on" data-tab="all" role="tab">Toutes les annonces</button>
+  <button data-tab="mine" role="tab">Mes annonces</button>
+  <button data-tab="about" role="tab">Comment ça marche</button>
+ </div>
+ <p class="count" id="count"></p>
+ <div class="list" id="list"></div>
+ <div id="about" hidden>
+  <div class="info">
+   <h3>Le principe</h3>
+   Publie une annonce en 30 secondes. Les autres étudiants te contactent directement sur WhatsApp : pas d'intermédiaire, pas de commission.
+   <h3 style="margin-top:12px">Diffuser sur le groupe WhatsApp</h3>
+   <ol>
+    <li>Publie ton annonce ici.</li>
+    <li>Appuie sur <b>« Partager »</b> : le message est déjà mis en forme.</li>
+    <li>Choisis le groupe <b>Campus Services</b> de ton université et envoie.</li>
+   </ol>
+   <h3 style="margin-top:12px">Règles</h3>
+   <ul style="margin:6px 0 0;padding-left:20px">
+    <li>Une annonce = un produit ou un service.</li>
+    <li>Pas de vente de sujets d'examen ni de travaux à rendre à la place d'un autre.</li>
+    <li>Rencontre-toi dans un lieu public du campus et vérifie avant de payer.</li>
+    <li>Supprime ton annonce une fois vendue.</li>
+   </ul>
+   <p class="hint" style="margin-top:12px">Version de démarrage : les annonces sont enregistrées sur ce téléphone. Les annonces marquées « exemple » sont là pour la démonstration.</p>
+   <button class="b del" id="reset" style="margin-top:10px">Effacer les exemples</button>
+  </div>
+ </div>
+</main>
+
+<button class="fab" id="add">＋ Publier une annonce</button>
+
+<dialog id="dlg">
+ <form class="dlg" id="form" method="dialog">
+  <h2>Nouvelle annonce</h2>
+  <label>Catégorie
+   <select name="cat" required id="fcat"></select>
+  </label>
+  <label>Titre
+   <input name="title" required maxlength="80" placeholder="Ex : Fiches d'Analyse 1 (L1 Maths)">
+  </label>
+  <label>Description
+   <textarea name="desc" maxlength="600" placeholder="État, contenu, horaires, conditions…"></textarea>
+  </label>
+  <div class="two">
+   <label>Prix (FCFA)
+    <input name="price" type="number" min="0" step="50" inputmode="numeric" placeholder="0 = à discuter">
+   </label>
+   <label>Lieu
+    <input name="place" maxlength="40" placeholder="Ex : Amphi B, Cité U">
+   </label>
+  </div>
+  <div class="two">
+   <label>Ton prénom
+    <input name="name" required maxlength="30" placeholder="Ex : Prunel">
+   </label>
+   <label>WhatsApp
+    <input name="phone" required inputmode="tel" placeholder="229 01 XX XX XX XX">
+   </label>
+  </div>
+  <span class="hint">Numéro avec l'indicatif du pays, sans le « + ». Il sera visible des autres étudiants.</span>
+  <div class="row">
+   <button class="b gh" type="button" id="cancel">Annuler</button>
+   <button class="b pri" type="submit" value="ok">Publier</button>
+  </div>
+ </form>
+</dialog>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const CATS=[
+ {id:'fiches',ic:'📚',n:'Résumés & fiches'},
+ {id:'jobs',ic:'💼',n:'Petits jobs'},
+ {id:'cours',ic:'🧑‍🏫',n:'Répétiteurs'},
+ {id:'print',ic:'🖨️',n:'Impression & photocopie'},
+ {id:'fourn',ic:'🧮',n:'Calculatrices & fournitures'},
+ {id:'divers',ic:'📌',n:'Petites annonces'}
+];
+const catOf=id=>CATS.find(c=>c.id===id)||CATS[5];
+const KEY='campus.ads.v1',ME='campus.me.v1',DRAFT='campus.profile.v1';
+const store={
+ get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
+ set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
+};
+const now=Date.now(),H=36e5;
+const SEED=[
+ {cat:'fiches',title:"Fiches complètes Analyse 1 — L1 Maths/Physique",desc:"42 pages manuscrites scannées, cours + exercices corrigés du 1er semestre.",price:1500,place:'Bibliothèque centrale',name:'Aïcha',phone:'22900000000',t:now-3*H},
+ {cat:'cours',title:"Répétiteur en comptabilité générale (L1/L2)",desc:"Étudiant en Master CCA. Séances de 2 h, en groupe de 4 max. Soirs et week-end.",price:2000,place:'Campus',name:'Kevin',phone:'22900000000',t:now-8*H},
+ {cat:'print',title:"Impression N&B 25 F la page, reliure 300 F",desc:"Envoie ton PDF sur WhatsApp, je livre à la fac le lendemain.",price:25,place:'Devant le resto U',name:'Sèna',phone:'22900000000',t:now-20*H},
+ {cat:'fourn',title:"Calculatrice Casio fx-991 en très bon état",desc:"Utilisée un an, avec couvercle. Piles neuves.",price:9000,place:'Cité U, bât. C',name:'Marc',phone:'22900000000',t:now-30*H},
+ {cat:'jobs',title:"Distribution de flyers samedi matin",desc:"3 personnes recherchées, 8 h – 12 h. Paiement le jour même.",price:3000,place:'Entrée principale',name:'Bureau des étudiants',phone:'22900000000',t:now-50*H},
+ {cat:'divers',title:"Cherche colocataire près du campus",desc:"Chambre dans un appartement de 2, eau et courant compris.",price:25000,place:'Quartier universitaire',name:'Gloria',phone:'22900000000',t:now-70*H}
+].map((a,i)=>({...a,id:'ex'+i,ex:true}));
+
+let ads=store.get(KEY,null);
+if(!ads){ads=SEED;store.set(KEY,ads)}
+const mine=new Set(store.get(ME,[]));
+let state={cat:'all',tab:'all',q:'',sort:'new'};
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const digits=s=>String(s||'').replace(/\D/g,'');
+const fcfa=p=>p>0?new Intl.NumberFormat('fr-FR').format(p)+' FCFA':'Prix à discuter';
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+function ago(t){const m=Math.round((Date.now()-t)/6e4);if(m<1)return "à l'instant";if(m<60)return`il y a ${m} min`;const h=Math.round(m/60);if(h<24)return`il y a ${h} h`;const d=Math.round(h/24);return`il y a ${d} j`}
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2200)}
+
+function renderCats(){
+ const n=id=>ads.filter(a=>id==='all'||a.cat===id).length;
+ $('#cats').innerHTML=[{id:'all',ic:'✨',n:'Tout'},...CATS].map(c=>
+  `<button class="chip${state.cat===c.id?' on':''}" data-cat="${c.id}">${c.ic} ${esc(c.n)} <span style="opacity:.6">${n(c.id)}</span></button>`).join('');
+}
+function filtered(){
+ const q=norm(state.q).split(/\s+/).filter(Boolean);
+ let r=ads.filter(a=>(state.cat==='all'||a.cat===state.cat)&&(state.tab!=='mine'||mine.has(a.id))&&
+  q.every(w=>norm(a.title+' '+a.desc+' '+a.place+' '+catOf(a.cat).n).includes(w)));
+ const p=a=>a.price>0?a.price:Infinity;
+ if(state.sort==='low')r.sort((a,b)=>p(a)-p(b));
+ else if(state.sort==='high')r.sort((a,b)=>(b.price||0)-(a.price||0));
+ else r.sort((a,b)=>b.t-a.t);
+ return r;
+}
+function waText(a){
+ const c=catOf(a.cat);
+ return `${c.ic} *${c.n.toUpperCase()}*\n*${a.title}*\n${a.desc?a.desc+'\n':''}💰 ${fcfa(a.price)}\n${a.place?'📍 '+a.place+'\n':''}👤 ${a.name} — wa.me/${digits(a.phone)}`;
+}
+function render(){
+ renderCats();
+ const about=state.tab==='about';
+ $('#about').hidden=!about;$('#list').hidden=about;$('#count').hidden=about;
+ if(about)return;
+ const r=filtered();
+ $('#count').textContent=r.length+(r.length>1?' annonces':' annonce');
+ if(!r.length){
+  $('#list').innerHTML=`<div class="empty">${state.tab==='mine'?"Tu n'as encore rien publié.<br>Appuie sur « Publier une annonce ».":"Aucune annonce ne correspond.<br>Sois le premier à publier !"}</div>`;
+  return;
+ }
+ $('#list').innerHTML=r.map(a=>{const c=catOf(a.cat);return`
+  <article class="ad">
+   <div class="top"><span class="tag">${c.ic} ${esc(c.n)}</span>${a.ex?'<span class="ex">exemple</span>':''}</div>
+   <h3>${esc(a.title)}</h3>
+   ${a.desc?`<p class="d">${esc(a.desc)}</p>`:''}
+   <div class="meta"><span class="price">${fcfa(a.price)}</span></div>
+   <div class="meta">${a.place?`<span>📍 ${esc(a.place)}</span>`:''}<span>👤 ${esc(a.name)}</span><span>🕒 ${ago(a.t)}</span></div>
+   <div class="acts">
+    <a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${digits(a.phone)}?text=${encodeURIComponent(`Bonjour ${a.name}, je te contacte pour ton annonce Campus Services : « ${a.title} ». Est-elle toujours disponible ?`)}">💬 Contacter</a>
+    <button class="b gh" data-share="${esc(a.id)}">↗ Partager</button>
+    ${mine.has(a.id)?`<button class="b del" data-del="${esc(a.id)}" aria-label="Supprimer">🗑</button>`:''}
+   </div>
+  </article>`}).join('');
+}
+function save(){store.set(KEY,ads);store.set(ME,[...mine])}
+
+$('#cats').onclick=e=>{const b=e.target.closest('[data-cat]');if(!b)return;state.cat=b.dataset.cat;if(state.tab==='about')setTab('all');render()};
+document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b)setTab(b.dataset.tab)};
+function setTab(t){state.tab=t;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));render()}
+$('#q').oninput=e=>{state.q=e.target.value;if(state.tab==='about')setTab('all');else render()};
+$('#sort').onchange=e=>{state.sort=e.target.value;render()};
+
+$('#list').onclick=async e=>{
+ const sh=e.target.closest('[data-share]'),dl=e.target.closest('[data-del]');
+ if(sh){
+  const a=ads.find(x=>x.id===sh.dataset.share);if(!a)return;
+  const txt=waText(a);
+  try{await navigator.clipboard.writeText(txt);toast('Message copié — colle-le dans le groupe')}catch(_){}
+  window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank','noopener');
+ }
+ if(dl&&confirm('Supprimer cette annonce ?')){
+  ads=ads.filter(a=>a.id!==dl.dataset.del);mine.delete(dl.dataset.del);save();render();toast('Annonce supprimée');
+ }
+};
+
+const dlg=$('#dlg'),form=$('#form');
+$('#fcat').innerHTML=CATS.map(c=>`<option value="${c.id}">${c.ic} ${esc(c.n)}</option>`).join('');
+$('#add').onclick=()=>{
+ form.reset();
+ const p=store.get(DRAFT,{});form.name.value=p.name||'';form.phone.value=p.phone||'';
+ if(state.cat!=='all')form.cat.value=state.cat;
+ dlg.showModal();
+};
+$('#cancel').onclick=()=>dlg.close();
+form.onsubmit=e=>{
+ e.preventDefault();
+ const f=Object.fromEntries(new FormData(form));
+ const ph=digits(f.phone);
+ if(ph.length<8){toast('Numéro WhatsApp invalide');form.phone.focus();return}
+ const a={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),cat:f.cat,title:f.title.trim(),desc:f.desc.trim(),
+  price:Math.max(0,parseInt(f.price,10)||0),place:f.place.trim(),name:f.name.trim(),phone:ph,t:Date.now()};
+ ads.unshift(a);mine.add(a.id);store.set(DRAFT,{name:a.name,phone:ph});save();
+ dlg.close();state.cat='all';setTab('all');toast('Annonce publiée ! Pense à la partager 👍');
+};
+$('#reset').onclick=()=>{if(!confirm('Retirer toutes les annonces d\'exemple ?'))return;ads=ads.filter(a=>!a.ex);save();toast('Exemples effacés');render()};
+
+render();
+</script>
+</body>
+</html>
