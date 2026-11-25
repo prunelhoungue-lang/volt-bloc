@@ -60,6 +60,7 @@ dialog::backdrop{background:#0b1230a8}
 .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);background:#141a2e;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:50;max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%)}
 .info{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px;line-height:1.5;color:var(--mute);font-size:14px}
+.net{background:#fff4e0;color:#7a4a00;border:1px solid #f3d29a;border-radius:10px;padding:9px 12px;font-size:13px;margin:4px 0 10px}
 .info h3{color:var(--ink);margin:0 0 6px;font-size:15px}
 .info ol{margin:6px 0 0;padding-left:20px}
 </style>
@@ -86,6 +87,7 @@ dialog::backdrop{background:#0b1230a8}
   <button data-tab="mine" role="tab">Mes annonces</button>
   <button data-tab="about" role="tab">Comment ça marche</button>
  </div>
+ <div class="net" id="net" hidden>📡 Connexion impossible pour le moment. Les annonces affichées peuvent ne pas être à jour.</div>
  <p class="count" id="count"></p>
  <div class="list" id="list"></div>
  <div id="about" hidden>
@@ -105,8 +107,7 @@ dialog::backdrop{background:#0b1230a8}
     <li>Rencontre-toi dans un lieu public du campus et vérifie avant de payer.</li>
     <li>Supprime ton annonce une fois vendue.</li>
    </ul>
-   <p class="hint" style="margin-top:12px">Version de démarrage : les annonces sont enregistrées sur ce téléphone. Les annonces marquées « exemple » sont là pour la démonstration.</p>
-   <button class="b del" id="reset" style="margin-top:10px">Effacer les exemples</button>
+   <p class="hint" style="margin-top:12px">Les annonces sont visibles par tous les étudiants et disparaissent automatiquement après 30 jours.</p>
   </div>
  </div>
 </main>
@@ -151,7 +152,24 @@ dialog::backdrop{background:#0b1230a8}
 
 <div class="toast" id="toast"></div>
 
-<script>
+<script type="module">
+import {initializeApp,getAuth,signInAnonymously,onAuthStateChanged,initializeFirestore,persistentLocalCache,collection,query,where,orderBy,limit,onSnapshot,addDoc,deleteDoc,doc,serverTimestamp,Timestamp} from './firebase.js';
+
+// Configuration publique du projet Firebase (non secrète : l'accès est protégé par firestore.rules)
+const firebaseConfig={
+ apiKey:"AIzaSyCVFwQIYXXMtmXoiVruuN_NKpWtwaPssZk",
+ authDomain:"campus-services-7bd87.firebaseapp.com",
+ projectId:"campus-services-7bd87",
+ storageBucket:"campus-services-7bd87.firebasestorage.app",
+ messagingSenderId:"433887009169",
+ appId:"1:433887009169:web:d125776939232919106230"
+};
+const fb=initializeApp(firebaseConfig);
+const auth=getAuth(fb);
+const db=initializeFirestore(fb,{localCache:persistentLocalCache()});
+const COL=collection(db,'annonces');
+const DAYS=30;
+
 const CATS=[
  {id:'fiches',ic:'📚',n:'Résumés & fiches'},
  {id:'jobs',ic:'💼',n:'Petits jobs'},
@@ -161,24 +179,13 @@ const CATS=[
  {id:'divers',ic:'📌',n:'Petites annonces'}
 ];
 const catOf=id=>CATS.find(c=>c.id===id)||CATS[5];
-const KEY='campus.ads.v1',ME='campus.me.v1',DRAFT='campus.profile.v1';
+const PROFILE='campus.profile.v1';
 const store={
  get(k,d){try{const v=localStorage.getItem(k);return v?JSON.parse(v):d}catch(e){return d}},
  set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}
 };
-const now=Date.now(),H=36e5;
-const SEED=[
- {cat:'fiches',title:"Fiches complètes Analyse 1 — L1 Maths/Physique",desc:"42 pages manuscrites scannées, cours + exercices corrigés du 1er semestre.",price:1500,place:'Bibliothèque centrale',name:'Aïcha',phone:'22900000000',t:now-3*H},
- {cat:'cours',title:"Répétiteur en comptabilité générale (L1/L2)",desc:"Étudiant en Master CCA. Séances de 2 h, en groupe de 4 max. Soirs et week-end.",price:2000,place:'Campus',name:'Kevin',phone:'22900000000',t:now-8*H},
- {cat:'print',title:"Impression N&B 25 F la page, reliure 300 F",desc:"Envoie ton PDF sur WhatsApp, je livre à la fac le lendemain.",price:25,place:'Devant le resto U',name:'Sèna',phone:'22900000000',t:now-20*H},
- {cat:'fourn',title:"Calculatrice Casio fx-991 en très bon état",desc:"Utilisée un an, avec couvercle. Piles neuves.",price:9000,place:'Cité U, bât. C',name:'Marc',phone:'22900000000',t:now-30*H},
- {cat:'jobs',title:"Distribution de flyers samedi matin",desc:"3 personnes recherchées, 8 h – 12 h. Paiement le jour même.",price:3000,place:'Entrée principale',name:'Bureau des étudiants',phone:'22900000000',t:now-50*H},
- {cat:'divers',title:"Cherche colocataire près du campus",desc:"Chambre dans un appartement de 2, eau et courant compris.",price:25000,place:'Quartier universitaire',name:'Gloria',phone:'22900000000',t:now-70*H}
-].map((a,i)=>({...a,id:'ex'+i,ex:true}));
 
-let ads=store.get(KEY,null);
-if(!ads){ads=SEED;store.set(KEY,ads)}
-const mine=new Set(store.get(ME,[]));
+let ads=[],uid=null,loaded=false,netErr=false;
 let state={cat:'all',tab:'all',q:'',sort:'new'};
 
 const $=s=>document.querySelector(s);
@@ -187,7 +194,7 @@ const digits=s=>String(s||'').replace(/\D/g,'');
 const fcfa=p=>p>0?new Intl.NumberFormat('fr-FR').format(p)+' FCFA':'Prix à discuter';
 const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
 function ago(t){const m=Math.round((Date.now()-t)/6e4);if(m<1)return "à l'instant";if(m<60)return`il y a ${m} min`;const h=Math.round(m/60);if(h<24)return`il y a ${h} h`;const d=Math.round(h/24);return`il y a ${d} j`}
-function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2200)}
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),2600)}
 
 function renderCats(){
  const n=id=>ads.filter(a=>id==='all'||a.cat===id).length;
@@ -196,7 +203,7 @@ function renderCats(){
 }
 function filtered(){
  const q=norm(state.q).split(/\s+/).filter(Boolean);
- let r=ads.filter(a=>(state.cat==='all'||a.cat===state.cat)&&(state.tab!=='mine'||mine.has(a.id))&&
+ let r=ads.filter(a=>(state.cat==='all'||a.cat===state.cat)&&(state.tab!=='mine'||a.uid===uid)&&
   q.every(w=>norm(a.title+' '+a.desc+' '+a.place+' '+catOf(a.cat).n).includes(w)));
  const p=a=>a.price>0?a.price:Infinity;
  if(state.sort==='low')r.sort((a,b)=>p(a)-p(b));
@@ -210,9 +217,11 @@ function waText(a){
 }
 function render(){
  renderCats();
+ $('#net').hidden=!netErr;
  const about=state.tab==='about';
  $('#about').hidden=!about;$('#list').hidden=about;$('#count').hidden=about;
  if(about)return;
+ if(!loaded&&!ads.length){$('#count').textContent='';$('#list').innerHTML='<div class="empty">Chargement des annonces…</div>';return}
  const r=filtered();
  $('#count').textContent=r.length+(r.length>1?' annonces':' annonce');
  if(!r.length){
@@ -221,7 +230,7 @@ function render(){
  }
  $('#list').innerHTML=r.map(a=>{const c=catOf(a.cat);return`
   <article class="ad">
-   <div class="top"><span class="tag">${c.ic} ${esc(c.n)}</span>${a.ex?'<span class="ex">exemple</span>':''}</div>
+   <div class="top"><span class="tag">${c.ic} ${esc(c.n)}</span>${a.pending?'<span class="ex">envoi…</span>':''}</div>
    <h3>${esc(a.title)}</h3>
    ${a.desc?`<p class="d">${esc(a.desc)}</p>`:''}
    <div class="meta"><span class="price">${fcfa(a.price)}</span></div>
@@ -229,13 +238,25 @@ function render(){
    <div class="acts">
     <a class="b wa" target="_blank" rel="noopener" href="https://wa.me/${digits(a.phone)}?text=${encodeURIComponent(`Bonjour ${a.name}, je te contacte pour ton annonce Campus Services : « ${a.title} ». Est-elle toujours disponible ?`)}">💬 Contacter</a>
     <button class="b gh" data-share="${esc(a.id)}">↗ Partager</button>
-    ${mine.has(a.id)?`<button class="b del" data-del="${esc(a.id)}" aria-label="Supprimer">🗑</button>`:''}
+    ${uid&&a.uid===uid?`<button class="b del" data-del="${esc(a.id)}" aria-label="Supprimer">🗑</button>`:''}
    </div>
   </article>`}).join('');
 }
-function save(){store.set(KEY,ads);store.set(ME,[...mine])}
 
-$('#cats').onclick=e=>{const b=e.target.closest('[data-cat]');if(!b)return;state.cat=b.dataset.cat;if(state.tab==='about')setTab('all');render()};
+function listen(){
+ const since=Timestamp.fromMillis(Date.now()-DAYS*864e5);
+ const q=query(COL,where('t','>',since),orderBy('t','desc'),limit(500));
+ onSnapshot(q,{includeMetadataChanges:true},snap=>{
+  ads=snap.docs.map(d=>{const x=d.data({serverTimestamps:'estimate'});
+   return{...x,id:d.id,t:x.t?x.t.toMillis():Date.now(),pending:d.metadata.hasPendingWrites}});
+  loaded=true;netErr=false;render();
+ },err=>{console.error(err);netErr=true;loaded=true;render()});
+}
+onAuthStateChanged(auth,u=>{uid=u?u.uid:null;render()});
+signInAnonymously(auth).catch(e=>{console.error(e);netErr=true;render()});
+listen();
+
+$('#cats').onclick=e=>{const b=e.target.closest('[data-cat]');if(!b)return;state.cat=b.dataset.cat;if(state.tab==='about')setTab('all');else render()};
 document.querySelector('.tabs').onclick=e=>{const b=e.target.closest('[data-tab]');if(b)setTab(b.dataset.tab)};
 function setTab(t){state.tab=t;document.querySelectorAll('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.tab===t));render()}
 $('#q').oninput=e=>{state.q=e.target.value;if(state.tab==='about')setTab('all');else render()};
@@ -250,7 +271,8 @@ $('#list').onclick=async e=>{
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank','noopener');
  }
  if(dl&&confirm('Supprimer cette annonce ?')){
-  ads=ads.filter(a=>a.id!==dl.dataset.del);mine.delete(dl.dataset.del);save();render();toast('Annonce supprimée');
+  try{await deleteDoc(doc(db,'annonces',dl.dataset.del));toast('Annonce supprimée')}
+  catch(err){console.error(err);toast('Suppression impossible. Vérifie ta connexion.')}
  }
 };
 
@@ -258,24 +280,31 @@ const dlg=$('#dlg'),form=$('#form');
 $('#fcat').innerHTML=CATS.map(c=>`<option value="${c.id}">${c.ic} ${esc(c.n)}</option>`).join('');
 $('#add').onclick=()=>{
  form.reset();
- const p=store.get(DRAFT,{});form.name.value=p.name||'';form.phone.value=p.phone||'';
+ const p=store.get(PROFILE,{});form.name.value=p.name||'';form.phone.value=p.phone||'';
  if(state.cat!=='all')form.cat.value=state.cat;
  dlg.showModal();
 };
 $('#cancel').onclick=()=>dlg.close();
-form.onsubmit=e=>{
+form.onsubmit=async e=>{
  e.preventDefault();
  const f=Object.fromEntries(new FormData(form));
  const ph=digits(f.phone);
- if(ph.length<8){toast('Numéro WhatsApp invalide');form.phone.focus();return}
- const a={id:'a'+Date.now().toString(36)+Math.random().toString(36).slice(2,6),cat:f.cat,title:f.title.trim(),desc:f.desc.trim(),
-  price:Math.max(0,parseInt(f.price,10)||0),place:f.place.trim(),name:f.name.trim(),phone:ph,t:Date.now()};
- ads.unshift(a);mine.add(a.id);store.set(DRAFT,{name:a.name,phone:ph});save();
- dlg.close();state.cat='all';setTab('all');toast('Annonce publiée ! Pense à la partager 👍');
+ if(ph.length<8||ph.length>15){toast('Numéro WhatsApp invalide');form.phone.focus();return}
+ if(!uid){
+  try{await signInAnonymously(auth)}catch(err){toast('Pas de connexion internet. Réessaie.');return}
+ }
+ const a={cat:f.cat,title:f.title.trim(),desc:f.desc.trim(),
+  price:Math.min(1e8,Math.max(0,parseInt(f.price,10)||0)),place:f.place.trim(),name:f.name.trim(),phone:ph,
+  uid:auth.currentUser.uid,t:serverTimestamp()};
+ store.set(PROFILE,{name:a.name,phone:ph});
+ const btn=form.querySelector('[type=submit]');btn.disabled=true;
+ addDoc(COL,a).then(()=>toast('Annonce publiée ! Pense à la partager 👍'))
+  .catch(err=>{console.error(err);toast("L'annonce a été refusée. Vérifie les champs.")});
+ btn.disabled=false;dlg.close();state.cat='all';setTab('all');
 };
-$('#reset').onclick=()=>{if(!confirm('Retirer toutes les annonces d\'exemple ?'))return;ads=ads.filter(a=>!a.ex);save();toast('Exemples effacés');render()};
 
 render();
 </script>
+
 </body>
 </html>
