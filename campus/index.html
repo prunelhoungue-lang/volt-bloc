@@ -81,9 +81,9 @@ dialog::backdrop{background:#0b1230a8}
  <div class="search">
   <input id="q" type="search" placeholder="Rechercher (ex : maths L1, calculatrice…)" aria-label="Rechercher">
   <select id="sort" aria-label="Trier">
-   <option value="new">Récent</option>
-   <option value="low">Prix ↑</option>
-   <option value="high">Prix ↓</option>
+   <option value="new">Plus récentes</option>
+   <option value="low">Moins chères</option>
+   <option value="high">Plus chères</option>
   </select>
  </div>
 </header>
@@ -96,28 +96,28 @@ dialog::backdrop{background:#0b1230a8}
   <button data-tab="mine" role="tab">Mes annonces</button>
   <button data-tab="about" role="tab">Aide</button>
  </div>
- <div class="net" id="net" hidden>📡 Connexion impossible pour le moment. Les annonces affichées peuvent ne pas être à jour.</div>
+ <div class="net" id="net" hidden>📡 Pas d'internet pour le moment. Les annonces ne sont peut-être pas à jour.</div>
  <p class="count" id="count"></p>
  <div class="list" id="list"></div>
  <div id="about" hidden>
   <div class="info">
-   <h3>Le principe</h3>
-   Publie une annonce en 30 secondes. Les autres étudiants te contactent directement sur WhatsApp : pas d'intermédiaire, pas de commission.
-   <h3 style="margin-top:12px">Diffuser sur le groupe WhatsApp</h3>
+   <h3>Comment ça marche</h3>
+   Tu publies ton annonce en 30 secondes. Les autres étudiants te contactent directement sur WhatsApp. C'est gratuit.
+   <h3 style="margin-top:12px">Envoyer ton annonce dans un groupe WhatsApp</h3>
    <ol>
     <li>Publie ton annonce ici.</li>
-    <li>Appuie sur <b>« Partager »</b> : le message est déjà mis en forme.</li>
+    <li>Appuie sur <b>« Partager »</b> : le message est déjà écrit.</li>
     <li>Choisis le groupe <b>Campus Services</b> de ton université et envoie.</li>
    </ol>
    <h3 style="margin-top:12px">Règles</h3>
    <ul style="margin:6px 0 0;padding-left:20px">
     <li>Une annonce = un produit ou un service.</li>
     <li>Pas de vente de sujets d'examen ni de travaux à rendre à la place d'un autre.</li>
-    <li>Rencontre-toi dans un lieu public du campus et vérifie avant de payer.</li>
+    <li>Rencontrez-vous dans un endroit où il y a du monde, et vérifie avant de payer.</li>
     <li>Supprime ton annonce une fois vendue.</li>
    </ul>
    <h3 style="margin-top:12px">⭐ Mettre une annonce à la une</h3>
-   Dans « Mes annonces », appuie sur ⭐ : ton annonce passe en tête de liste avec un badge, pour quelques jours.
+   Dans « Mes annonces », appuie sur ⭐ : ton annonce s'affiche tout en haut pendant quelques jours, pour être vue par plus de monde.
    <p class="hint" style="margin-top:12px">Les annonces sont visibles par tous les étudiants et disparaissent automatiquement après 30 jours.</p>
   </div>
  </div>
@@ -135,11 +135,11 @@ dialog::backdrop{background:#0b1230a8}
    <input name="title" required maxlength="80" placeholder="Ex : Fiches d'Analyse 1 (L1 Maths)">
   </label>
   <label>Description
-   <textarea name="desc" maxlength="600" placeholder="État, contenu, horaires, conditions…"></textarea>
+   <textarea name="desc" maxlength="600" placeholder="Ex : bon état, 40 pages, disponible le soir…"></textarea>
   </label>
   <div class="two">
    <label>Prix (FCFA)
-    <input name="price" type="number" min="0" step="50" inputmode="numeric" placeholder="0 = à discuter">
+    <input name="price" type="number" min="0" step="50" inputmode="numeric" placeholder="Vide = à discuter">
    </label>
    <label>Lieu
     <input name="place" maxlength="40" placeholder="Ex : Amphi B, Cité U">
@@ -147,13 +147,13 @@ dialog::backdrop{background:#0b1230a8}
   </div>
   <div class="two">
    <label>Ton prénom
-    <input name="name" required maxlength="30" placeholder="Ex : Prunel">
+    <input name="name" required maxlength="30" placeholder="Ex : Prinel">
    </label>
    <label>WhatsApp
-    <input name="phone" required inputmode="tel" placeholder="229 01 XX XX XX XX">
+    <input name="phone" required inputmode="tel" placeholder="01 XX XX XX XX">
    </label>
   </div>
-  <span class="hint">Numéro avec l'indicatif du pays, sans le « + ». Il sera visible des autres étudiants.</span>
+  <span class="hint">Les autres étudiants verront ce numéro pour te contacter sur WhatsApp.</span>
   <div class="row">
    <button class="b gh" type="button" id="cancel">Annuler</button>
    <button class="b pri" type="submit" value="ok">Publier</button>
@@ -234,7 +234,7 @@ function pubAt(i,force){
  if(state.tab!=='all'||!pubs.length)return'';
  if(!force&&(i<PUB_FIRST||(i-PUB_FIRST)%PUB_EVERY))return'';
  const k=force?0:(i-PUB_FIRST)/PUB_EVERY,x=pubs[k%pubs.length],href=safeLink(x.lien);
- const inner=`<small>Sponsorisé</small><b>${esc(x.titre)}</b>${x.texte?`<span>${esc(x.texte)}</span>`:''}`;
+ const inner=`<small>Publicité</small><b>${esc(x.titre)}</b>${x.texte?`<span>${esc(x.texte)}</span>`:''}`;
  return href?`<a class="pub" href="${esc(href)}" target="_blank" rel="noopener">${inner}</a>`:`<div class="pub">${inner}</div>`;
 }
 function render(){
@@ -247,12 +247,12 @@ function render(){
  const r=filtered();
  $('#count').textContent=r.length+(r.length>1?' annonces':' annonce');
  if(!r.length){
-  $('#list').innerHTML=`<div class="empty">${state.tab==='mine'?"Tu n'as encore rien publié.<br>Appuie sur « Publier une annonce ».":"Aucune annonce ne correspond.<br>Sois le premier à publier !"}</div>`;
+  $('#list').innerHTML=`<div class="empty">${state.tab==='mine'?"Tu n'as encore rien publié.<br>Appuie sur « ＋ Publier » en bas.":"Aucune annonce ne correspond.<br>Sois le premier à publier !"}</div>`;
   return;
  }
  $('#list').innerHTML=r.map((a,i)=>{const c=catOf(a.cat);return`
   ${pubAt(i)}<article class="ad${isUne(a)?' une':''}">
-   <div class="top"><span class="tag">${c.ic} ${esc(c.n)}</span>${isUne(a)?'<span class="star">⭐ À la une</span>':''}${a.pending?'<span class="ex">envoi…</span>':''}</div>
+   <div class="top"><span class="tag">${c.ic} ${esc(c.n)}</span>${isUne(a)?'<span class="star">⭐ À la une</span>':''}${a.pending?'<span class="ex">envoi en cours…</span>':''}</div>
    <h3>${esc(a.title)}</h3>
    ${a.desc?`<p class="d">${esc(a.desc)}</p>`:''}
    <div class="meta"><span class="price">${fcfa(a.price)}</span></div>
@@ -304,12 +304,12 @@ $('#list').onclick=async e=>{
  if(sh){
   const a=ads.find(x=>x.id===sh.dataset.share);if(!a)return;
   const txt=waText(a);
-  try{await navigator.clipboard.writeText(txt);toast('Message copié — colle-le dans le groupe')}catch(_){}
+  try{await navigator.clipboard.writeText(txt);toast('Message copié. Colle-le dans le groupe.')}catch(_){}
   window.open('https://wa.me/?text='+encodeURIComponent(txt),'_blank','noopener');
  }
  if(dl&&confirm('Supprimer cette annonce ?')){
   try{await deleteDoc(doc(db,'annonces',dl.dataset.del));toast('Annonce supprimée')}
-  catch(err){console.error(err);toast('Suppression impossible. Vérifie ta connexion.')}
+  catch(err){console.error(err);toast('Impossible de supprimer. Vérifie ton internet.')}
  }
 };
 
@@ -325,10 +325,11 @@ $('#cancel').onclick=()=>dlg.close();
 form.onsubmit=async e=>{
  e.preventDefault();
  const f=Object.fromEntries(new FormData(form));
- const ph=digits(f.phone);
- if(ph.length<8||ph.length>15){toast('Numéro WhatsApp invalide');form.phone.focus();return}
+ let ph=digits(f.phone);
+ if(ph.length===10&&ph.startsWith('01'))ph='229'+ph; // numéro béninois sans indicatif
+ if(ph.length<8||ph.length>15){toast('Ce numéro WhatsApp n\'est pas bon. Vérifie-le.');form.phone.focus();return}
  if(!uid){
-  try{await signInAnonymously(auth)}catch(err){toast('Pas de connexion internet. Réessaie.');return}
+  try{await signInAnonymously(auth)}catch(err){toast('Pas d\'internet. Réessaie.');return}
  }
  const a={cat:f.cat,title:f.title.trim(),desc:f.desc.trim(),
   price:Math.min(1e8,Math.max(0,parseInt(f.price,10)||0)),place:f.place.trim(),name:f.name.trim(),phone:ph,
@@ -336,7 +337,7 @@ form.onsubmit=async e=>{
  store.set(PROFILE,{name:a.name,phone:ph});
  const btn=form.querySelector('[type=submit]');btn.disabled=true;
  addDoc(COL,a).then(()=>toast('Annonce publiée ! Pense à la partager 👍'))
-  .catch(err=>{console.error(err);toast("L'annonce a été refusée. Vérifie les champs.")});
+  .catch(err=>{console.error(err);toast("L'annonce n'a pas pu être publiée. Vérifie ce que tu as écrit.")});
  btn.disabled=false;dlg.close();state.cat='all';setTab('all');
 };
 
