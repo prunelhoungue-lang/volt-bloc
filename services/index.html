@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f172a">
+<title>All Creation — applis, pages et réseaux sociaux</title>
+<meta name="description" content="Création d'applications, de pages de commande WhatsApp et gestion de réseaux sociaux pour les commerces.">
+<style>
+:root{--bg:#f6f7fb;--ink:#0f172a;--mute:#5b6478;--line:#e4e7ef;--pri:#ff6a2b;--pri2:#fff0e8;--dark:#0f172a;--wa:#1faa59;--r:16px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,Roboto,sans-serif;font-size:16px;line-height:1.5;overflow-x:hidden}
+a{color:inherit}
+.wrap{max-width:900px;margin:0 auto;padding:0 18px}
+header.hero{background:var(--dark);color:#fff;padding:calc(28px + env(safe-area-inset-top)) 0 40px}
+.brand{font-weight:800;letter-spacing:.5px;font-size:15px;opacity:.85}
+.brand b{color:var(--pri)}
+.hero h1{font-size:clamp(28px,7vw,44px);line-height:1.15;margin:18px 0 12px}
+.hero h1 em{font-style:normal;color:var(--pri)}
+.hero p{font-size:17px;opacity:.85;margin:0 0 22px;max-width:560px}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;border-radius:12px;padding:14px 18px;font-weight:700;text-decoration:none;font-size:16px;cursor:pointer}
+.btn.wa{background:var(--wa);color:#fff}
+.btn.ghost{background:#ffffff14;color:#fff;box-shadow:inset 0 0 0 1px #ffffff33}
+.btn.pri{background:var(--pri);color:#fff}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+section{padding:40px 0 8px}
+h2{font-size:24px;margin:0 0 6px}
+.sub{color:var(--mute);margin:0 0 20px}
+.grid{display:grid;gap:14px}
+@media(min-width:680px){.grid.g2{grid-template-columns:1fr 1fr}.grid.g3{grid-template-columns:1fr 1fr 1fr}}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:18px;display:flex;flex-direction:column;gap:8px}
+.card .ic{font-size:28px}
+.card h3{margin:0;font-size:18px}
+.card p{margin:0;color:var(--mute);font-size:15px}
+.card ul{margin:4px 0 0;padding-left:18px;color:var(--mute);font-size:15px}
+.price{font-weight:800;font-size:20px;margin-top:auto;padding-top:6px}
+.price small{font-weight:500;color:var(--mute);font-size:14px}
+.card .btn{margin-top:6px;width:100%;font-size:15px;padding:12px}
+.card.hl{border:2px solid var(--pri);position:relative}
+.card.hl::before{content:"Le plus demandé";position:absolute;top:-11px;left:16px;background:var(--pri);color:#fff;font-size:12px;font-weight:700;padding:2px 10px;border-radius:999px}
+.work{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column}
+.work .shot{height:150px;display:flex;align-items:center;justify-content:center;font-size:54px}
+.work .body{padding:16px;display:flex;flex-direction:column;gap:6px;flex:1}
+.work h3{margin:0;font-size:17px}
+.work p{margin:0;color:var(--mute);font-size:15px}
+.work a.lnk{margin-top:auto;font-weight:700;color:var(--pri);text-decoration:none;padding-top:6px}
+.steps{counter-reset:s;display:grid;gap:12px}
+.steps div{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 16px 60px;position:relative}
+.steps div::before{counter-increment:s;content:counter(s);position:absolute;left:16px;top:16px;width:30px;height:30px;border-radius:50%;background:var(--pri2);color:var(--pri);font-weight:800;display:flex;align-items:center;justify-content:center}
+.steps b{display:block}
+.steps span{color:var(--mute);font-size:15px}
+details{background:#fff;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-bottom:10px}
+summary{font-weight:700;cursor:pointer}
+details p{color:var(--mute);margin:8px 0 0}
+.final{background:var(--dark);color:#fff;border-radius:20px;padding:28px 20px;text-align:center;margin:40px 0 30px}
+.final h2{margin-bottom:8px}
+.final p{opacity:.8;margin:0 0 18px}
+footer{text-align:center;color:var(--mute);font-size:13px;padding:0 0 calc(30px + env(safe-area-inset-bottom))}
+</style>
+</head>
+<body>
+
+<header class="hero">
+ <div class="wrap">
+  <div class="brand">ALL <b>CREATION</b></div>
+  <h1>Vos clients commandent <em>sur WhatsApp</em>, en 2 clics.</h1>
+  <p>Je crée des pages de commande, des applications Android et je gère vos réseaux sociaux. Simple, rapide, à petit prix.</p>
+  <div class="cta">
+   <a class="btn wa" data-wa="Bonjour, je veux un devis pour mon commerce.">💬 Demander un devis</a>
+   <a class="btn ghost" href="demo-resto/">👀 Voir une démo</a>
+  </div>
+ </div>
+</header>
+
+<main class="wrap">
+
+ <section id="offres">
+  <h2>Mes offres</h2>
+  <p class="sub">Des prix clairs, adaptés aux petits commerces.</p>
+  <div class="grid g2">
+   <div class="card hl">
+    <div class="ic">🛒</div>
+    <h3>Page de commande WhatsApp</h3>
+    <p>Votre menu ou catalogue en ligne. Le client choisit, la commande arrive directement sur votre WhatsApp.</p>
+    <ul><li>Vos produits, photos et prix</li><li>Un lien à partager partout</li><li>Livrée en 3 jours</li></ul>
+    <div class="price">15 000 – 25 000 F <small>une fois</small></div>
+    <a class="btn pri" data-wa="Bonjour, je suis intéressé(e) par une page de commande WhatsApp.">Je veux cette page</a>
+   </div>
+   <div class="card">
+    <div class="ic">📱</div>
+    <h3>Application Android</h3>
+    <p>Votre propre application à installer sur le téléphone de vos clients ou de votre équipe.</p>
+    <ul><li>Catalogue, réservations, annonces…</li><li>Données en ligne, mises à jour en direct</li><li>Fichier APK prêt à partager</li></ul>
+    <div class="price">à partir de 40 000 F</div>
+    <a class="btn pri" data-wa="Bonjour, je voudrais une application Android pour mon activité.">Parlons de mon appli</a>
+   </div>
+   <div class="card">
+    <div class="ic">📣</div>
+    <h3>Gestion de vos réseaux</h3>
+    <p>Facebook, WhatsApp Business, TikTok : je publie pour vous pendant que vous vendez.</p>
+    <ul><li>3 publications par semaine</li><li>Visuels et textes inclus</li><li>Petit bilan chaque mois</li></ul>
+    <div class="price">15 000 F <small>/ mois</small></div>
+    <a class="btn pri" data-wa="Bonjour, je veux confier la gestion de mes réseaux sociaux.">Je m'abonne</a>
+   </div>
+   <div class="card">
+    <div class="ic">🎨</div>
+    <h3>Affiches & visuels</h3>
+    <p>Affiches de promo, flyers, statuts WhatsApp, logos simples.</p>
+    <ul><li>Livraison en 24 h</li><li>2 retouches comprises</li></ul>
+    <div class="price">2 000 – 5 000 F <small>/ visuel</small></div>
+    <a class="btn pri" data-wa="Bonjour, j'ai besoin d'une affiche.">Commander un visuel</a>
+   </div>
+  </div>
+ </section>
+
+ <section id="realisations">
+  <h2>Réalisations</h2>
+  <p class="sub">Des projets concrets, déjà en service.</p>
+  <div class="grid g3">
+   <div class="work">
+    <div class="shot" style="background:#e8eefe">🎓</div>
+    <div class="body">
+     <h3>Campus Services</h3>
+     <p>Application Android d'annonces entre étudiants : fiches, jobs, répétiteurs. Annonces en ligne, contact WhatsApp, mises en avant payantes.</p>
+     <a class="lnk" href="../campus/">Voir l'application →</a>
+    </div>
+   </div>
+   <div class="work">
+    <div class="shot" style="background:#fff0e8">🍲</div>
+    <div class="body">
+     <h3>Démo restaurant</h3>
+     <p>Menu en ligne avec panier. Le client commande et la commande arrive sur WhatsApp, prête à préparer.</p>
+     <a class="lnk" href="demo-resto/">Essayer la démo →</a>
+    </div>
+   </div>
+   <div class="work">
+    <div class="shot" style="background:#0a1130">⚡</div>
+    <div class="body">
+     <h3>Volt Bloc</h3>
+     <p>Jeu de puzzle mobile publié en application Android, avec publicités intégrées.</p>
+     <a class="lnk" href="../">Jouer →</a>
+    </div>
+   </div>
+  </div>
+ </section>
+
+ <section id="comment">
+  <h2>Comment ça se passe</h2>
+  <p class="sub">Simple, et vous ne payez le solde qu'une fois satisfait.</p>
+  <div class="steps">
+   <div><b>On discute sur WhatsApp</b><span>Vous m'expliquez votre activité et m'envoyez vos produits, prix et photos.</span></div>
+   <div><b>Acompte de 50 %</b><span>Par Mobile Money. Je commence le travail tout de suite.</span></div>
+   <div><b>Je vous montre le résultat</b><span>Vous testez sur votre téléphone et demandez les retouches.</span></div>
+   <div><b>Livraison et solde</b><span>Je vous remets le lien ou l'application et je vous explique comment l'utiliser.</span></div>
+  </div>
+ </section>
+
+ <section id="faq">
+  <h2>Questions fréquentes</h2>
+  <details><summary>Je n'y connais rien en informatique, c'est grave ?</summary><p>Pas du tout. Je m'occupe de tout, vous recevez simplement un lien ou une application prête à l'emploi.</p></details>
+  <details><summary>Et si je veux changer mes prix ou mes produits ?</summary><p>Les petites mises à jour du premier mois sont offertes. Ensuite, un forfait d'entretien est possible.</p></details>
+  <details><summary>Comment je paie ?</summary><p>Par Mobile Money ou en espèces : 50 % au début, 50 % à la livraison.</p></details>
+  <details><summary>En combien de temps c'est prêt ?</summary><p>3 jours pour une page de commande, 1 à 2 semaines pour une application.</p></details>
+ </section>
+
+ <div class="final">
+  <h2>Prêt à vendre plus ?</h2>
+  <p>Écrivez-moi, le devis est gratuit et sans engagement.</p>
+  <a class="btn wa" data-wa="Bonjour, je veux un devis pour mon commerce.">💬 Me contacter sur WhatsApp</a>
+ </div>
+</main>
+
+<footer>© All Creation — création d'applis, pages et visuels</footer>
+
+<script>
+// ⚠️ Mets ici ton numéro WhatsApp, avec l'indicatif et sans le « + ».
+const WHATSAPP='229XXXXXXXXXX';
+document.querySelectorAll('[data-wa]').forEach(a=>{
+ a.href='https://wa.me/'+WHATSAPP.replace(/\D/g,'')+'?text='+encodeURIComponent(a.dataset.wa);
+ a.target='_blank';a.rel='noopener';
+});
+</script>
+</body>
+</html>

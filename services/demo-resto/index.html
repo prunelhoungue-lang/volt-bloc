@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#b3261e">
+<title>Chez Tantie — commande en ligne (démo)</title>
+<style>
+:root{--bg:#fbf7f2;--ink:#2a1d14;--mute:#7a6a5c;--line:#eee3d6;--pri:#b3261e;--wa:#1faa59;--r:14px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,Roboto,sans-serif;font-size:16px;overflow-x:hidden}
+.demo{background:#2a1d14;color:#fff;font-size:13px;text-align:center;padding:calc(8px + env(safe-area-inset-top)) 12px 8px}
+.demo a{color:#ffd28a}
+header{background:var(--pri);color:#fff;padding:20px 18px 18px}
+header h1{margin:0;font-size:26px}
+header p{margin:4px 0 0;opacity:.9;font-size:14px}
+.open{display:inline-block;margin-top:10px;background:#ffffff22;border-radius:999px;padding:4px 10px;font-size:13px}
+nav{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;position:sticky;top:0;background:var(--bg);z-index:5;scrollbar-width:none;border-bottom:1px solid var(--line)}
+nav::-webkit-scrollbar{display:none}
+nav a{flex:none;text-decoration:none;color:var(--ink);background:#fff;border:1px solid var(--line);border-radius:999px;padding:7px 13px;font-size:14px}
+main{max-width:720px;margin:0 auto;padding:6px 16px 130px}
+h2{font-size:19px;margin:20px 0 10px;scroll-margin-top:64px}
+.item{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.pic{flex:none;width:64px;height:64px;border-radius:12px;background:#fdebd8;display:flex;align-items:center;justify-content:center;font-size:34px}
+.info{flex:1;min-width:0}
+.info b{display:block}
+.info small{color:var(--mute);display:block;line-height:1.35}
+.info .p{font-weight:800;margin-top:4px;display:block}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:34px;height:34px;border-radius:50%;border:0;font-size:20px;font-weight:700;cursor:pointer;background:#f6e8da;color:var(--pri)}
+.qty button.add{background:var(--pri);color:#fff}
+.qty span{min-width:16px;text-align:center;font-weight:700}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:none;z-index:10}
+.bar.on{display:block}
+.bar .in{max-width:720px;margin:0 auto;display:flex;gap:12px;align-items:center}
+.bar .tot{flex:1;min-width:0}
+.bar .tot small{color:var(--mute);display:block}
+.bar .tot b{font-size:19px}
+.btn{border:0;border-radius:12px;padding:14px 16px;font-weight:700;font-size:16px;cursor:pointer;background:var(--wa);color:#fff}
+dialog{border:0;border-radius:18px;padding:0;width:min(94vw,480px);color:var(--ink)}
+dialog::backdrop{background:#0008}
+form{padding:18px;display:flex;flex-direction:column;gap:10px}
+form h3{margin:0}
+label{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600;color:var(--mute)}
+input,select,textarea{font:inherit;border:1px solid var(--line);border-radius:10px;padding:10px 12px;color:var(--ink);background:#fff}
+.recap{background:var(--bg);border-radius:10px;padding:10px 12px;font-size:14px;white-space:pre-line}
+.row{display:flex;gap:8px}.row .btn{flex:1}
+.btn.gh{background:#f3ece4;color:var(--ink)}
+</style>
+</head>
+<body>
+<div class="demo">Démo réalisée par <a href="../">All Creation</a> — votre commerce peut avoir la même.</div>
+<header>
+ <h1>🍲 Chez Tantie</h1>
+ <p>Cuisine locale faite maison · Livraison campus & quartier</p>
+ <span class="open">🟢 Ouvert · 11 h – 22 h</span>
+</header>
+<nav id="nav"></nav>
+<main id="menu"></main>
+
+<div class="bar" id="bar"><div class="in">
+ <div class="tot"><small id="nb"></small><b id="tot"></b></div>
+ <button class="btn" id="go">Commander</button>
+</div></div>
+
+<dialog id="dlg"><form id="form" method="dialog">
+ <h3>Finaliser la commande</h3>
+ <div class="recap" id="recap"></div>
+ <label>Ton prénom<input name="nom" required maxlength="30"></label>
+ <label>Mode<select name="mode"><option>Livraison (+500 F)</option><option>À emporter</option></select></label>
+ <label>Adresse / repère<input name="adr" maxlength="80" placeholder="Ex : Cité U, bât. B, chambre 12"></label>
+ <label>Remarque<textarea name="rem" rows="2" maxlength="160" placeholder="Ex : pas trop pimenté"></textarea></label>
+ <div class="row"><button type="button" class="btn gh" id="cancel">Retour</button><button class="btn" type="submit">Envoyer sur WhatsApp</button></div>
+</form></dialog>
+
+<script>
+// Numéro WhatsApp du restaurant (démo : remplace par le vrai numéro du client).
+const WHATSAPP='229XXXXXXXXXX';
+const MENU=[
+ {cat:'Plats',items:[
+  ['🍛','Riz au gras + poulet','Riz parfumé, poulet braisé, sauce tomate',1500],
+  ['🥘','Pâte + sauce légumes','Pâte de maïs, sauce gombo ou légumes, viande',1000],
+  ['🍗','Attiéké poisson','Attiéké, poisson braisé, piment, oignons',1500],
+  ['🫘','Haricot + gari + alloco','Le classique, avec huile rouge',700]]},
+ {cat:'Grillades',items:[
+  ['🍢','Brochettes de bœuf (x3)','Bien épicées',1000],
+  ['🐟','Poisson braisé entier','Avec alloco ou frites',2500]]},
+ {cat:'Boissons',items:[
+  ['🧃','Jus de bissap','Fait maison, 50 cl',300],
+  ['🍍','Jus d\'ananas','Fait maison, 50 cl',400],
+  ['💧','Eau minérale','1,5 L',400]]}
+];
+const fmt=n=>new Intl.NumberFormat('fr-FR').format(n)+' F';
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const all=MENU.flatMap(c=>c.items),cart={};
+document.getElementById('nav').innerHTML=MENU.map((c,i)=>`<a href="#c${i}">${esc(c.cat)}</a>`).join('');
+let k=0;
+document.getElementById('menu').innerHTML=MENU.map((c,i)=>`<h2 id="c${i}">${esc(c.cat)}</h2>`+c.items.map(([ic,n,d,p])=>{const id=k++;return`
+ <div class="item"><div class="pic">${ic}</div><div class="info"><b>${esc(n)}</b><small>${esc(d)}</small><span class="p">${fmt(p)}</span></div>
+ <div class="qty"><button data-m="${id}" aria-label="Retirer">−</button><span id="q${id}">0</span><button class="add" data-p="${id}" aria-label="Ajouter">+</button></div></div>`}).join('')).join('');
+function upd(){
+ let n=0,t=0;for(const id in cart){n+=cart[id];t+=cart[id]*all[id][3]}
+ all.forEach((_,i)=>document.getElementById('q'+i).textContent=cart[i]||0);
+ document.getElementById('bar').classList.toggle('on',n>0);
+ document.getElementById('nb').textContent=n+(n>1?' articles':' article');
+ document.getElementById('tot').textContent=fmt(t);
+ return t;
+}
+document.getElementById('menu').onclick=e=>{
+ const p=e.target.dataset.p,m=e.target.dataset.m;
+ if(p!==undefined)cart[p]=(cart[p]||0)+1;
+ if(m!==undefined&&cart[m]){cart[m]--;if(!cart[m])delete cart[m]}
+ upd();
+};
+const lines=()=>Object.keys(cart).map(id=>`${cart[id]} × ${all[id][1]} — ${fmt(cart[id]*all[id][3])}`).join('\n');
+const dlg=document.getElementById('dlg'),form=document.getElementById('form');
+document.getElementById('go').onclick=()=>{document.getElementById('recap').textContent=lines()+'\nTotal : '+fmt(upd());dlg.showModal()};
+document.getElementById('cancel').onclick=()=>dlg.close();
+form.onsubmit=e=>{
+ e.preventDefault();const f=Object.fromEntries(new FormData(form));
+ const liv=f.mode.startsWith('Livraison')?500:0,t=upd()+liv;
+ const msg=`🍲 *Nouvelle commande — Chez Tantie*\n\n${lines()}\n${liv?'Livraison — '+fmt(liv)+'\n':''}*Total : ${fmt(t)}*\n\n👤 ${f.nom}\n🚚 ${f.mode}${f.adr?'\n📍 '+f.adr:''}${f.rem?'\n📝 '+f.rem:''}`;
+ window.open('https://wa.me/'+WHATSAPP.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank','noopener');
+ dlg.close();
+};
+</script>
+</body>
+</html>
