@@ -11,21 +11,22 @@
  --pri:#1546d1;--pri2:#e8eefe;--wa:#1faa59;--danger:#d63a3a;--r:14px;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,Roboto,sans-serif;font-size:15px}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;overflow-x:hidden;max-width:100%;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,Roboto,sans-serif;font-size:15px}
 button,input,select,textarea{font:inherit;color:inherit}
 header{position:sticky;top:0;z-index:10;background:var(--pri);color:#fff;padding:calc(12px + env(safe-area-inset-top)) 16px 12px}
 header h1{margin:0;font-size:20px;letter-spacing:.3px}
 header p{margin:2px 0 10px;font-size:13px;opacity:.85}
 .search{display:flex;gap:8px}
-.search input{flex:1;border:0;border-radius:12px;padding:11px 14px;background:#fff;color:var(--ink)}
-.search select{border:0;border-radius:12px;padding:0 10px;background:#fff;color:var(--ink)}
+.search input{flex:1;min-width:0;border:0;border-radius:12px;padding:11px 14px;background:#fff;color:var(--ink)}
+.search select{flex:none;max-width:38%;border:0;border-radius:12px;padding:0 10px;background:#fff;color:var(--ink)}
 .cats{display:flex;gap:8px;overflow-x:auto;padding:12px 16px 4px;scrollbar-width:none}
 .cats::-webkit-scrollbar{display:none}
 .chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:8px 13px;font-size:14px;cursor:pointer;white-space:nowrap}
 .chip.on{background:var(--pri);border-color:var(--pri);color:#fff}
 main{max-width:760px;margin:0 auto;padding:8px 16px 110px}
 .tabs{display:flex;gap:6px;margin:8px 0 12px}
-.tabs button{flex:1;border:0;background:transparent;padding:9px;border-radius:10px;color:var(--mute);font-weight:600;cursor:pointer}
+.tabs button{flex:1;min-width:0;font-size:14px;border:0;background:transparent;padding:9px;border-radius:10px;color:var(--mute);font-weight:600;cursor:pointer}
 .tabs button.on{background:var(--pri2);color:var(--pri)}
 .count{font-size:13px;color:var(--mute);margin:0 0 8px}
 .list{display:grid;gap:10px}
@@ -38,14 +39,15 @@ main{max-width:760px;margin:0 auto;padding:8px 16px 110px}
 .ad .d{margin:0;color:var(--mute);line-height:1.45;white-space:pre-wrap;word-break:break-word}
 .ad .meta{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--mute)}
 .ad .price{font-weight:700;color:var(--ink);font-size:16px}
-.ad .acts{display:flex;gap:8px;margin-top:6px}
+.ad .acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:6px}
+.ad .acts .wa{min-width:60%}
 .b{border:0;border-radius:11px;padding:10px 12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;text-decoration:none}
 .b.wa{background:var(--wa);color:#fff;flex:1}
 .b.gh{background:var(--pri2);color:var(--pri)}
 .b.del{background:#fdeaea;color:var(--danger)}
 .b.pri{background:var(--pri);color:#fff;width:100%;padding:13px}
 .empty{text-align:center;color:var(--mute);padding:40px 10px;background:var(--card);border:1px dashed var(--line);border-radius:var(--r)}
-.fab{position:fixed;right:16px;bottom:calc(18px + env(safe-area-inset-bottom));border:0;border-radius:999px;background:var(--pri);color:#fff;font-weight:700;padding:15px 20px;box-shadow:0 8px 22px #1546d155;cursor:pointer;z-index:20}
+.fab{position:fixed;right:16px;max-width:calc(100vw - 32px);bottom:calc(18px + env(safe-area-inset-bottom));border:0;border-radius:999px;background:var(--pri);color:#fff;font-weight:700;padding:15px 20px;box-shadow:0 8px 22px #1546d155;cursor:pointer;z-index:20}
 dialog{border:0;border-radius:18px;padding:0;width:min(94vw,520px);max-height:92vh;color:var(--ink);background:var(--card)}
 dialog::backdrop{background:#0b1230a8}
 .dlg{padding:18px;display:flex;flex-direction:column;gap:11px}
@@ -90,9 +92,9 @@ dialog::backdrop{background:#0b1230a8}
 
 <main>
  <div class="tabs" role="tablist">
-  <button class="on" data-tab="all" role="tab">Toutes les annonces</button>
+  <button class="on" data-tab="all" role="tab">Annonces</button>
   <button data-tab="mine" role="tab">Mes annonces</button>
-  <button data-tab="about" role="tab">Comment ça marche</button>
+  <button data-tab="about" role="tab">Aide</button>
  </div>
  <div class="net" id="net" hidden>📡 Connexion impossible pour le moment. Les annonces affichées peuvent ne pas être à jour.</div>
  <p class="count" id="count"></p>
@@ -121,7 +123,7 @@ dialog::backdrop{background:#0b1230a8}
  </div>
 </main>
 
-<button class="fab" id="add">＋ Publier une annonce</button>
+<button class="fab" id="add">＋ Publier</button>
 
 <dialog id="dlg">
  <form class="dlg" id="form" method="dialog">
