@@ -1,4 +1,4 @@
-# Kit de démarrage — All Creation
+# Kit de démarrage — Prinel
 
 Trois activités qui se renforcent :
 
@@ -44,7 +44,7 @@ pharmacies, écoles privées, pâtisseries, vendeurs qui publient déjà sur Wha
 ### Message WhatsApp (premier contact)
 
 ```
-Bonjour 👋 Je m'appelle [Prénom], je crée des pages de commande en ligne pour les
+Bonjour 👋 Je m'appelle Prinel, je crée des pages de commande en ligne pour les
 commerces du quartier.
 
 Vos clients choisissent sur leur téléphone et la commande arrive directement sur
@@ -65,7 +65,7 @@ Je vous la montre en 5 minutes ?
 ### Relance (2–3 jours après)
 
 ```
-Bonjour [Nom], c'est [Prénom] pour la page de commande. Je peux vous préparer un
+Bonjour [Nom], c'est Prinel pour la page de commande. Je peux vous préparer un
 aperçu gratuit avec 5 de vos produits pour que vous voyiez le rendu. Ça vous dit ?
 ```
 
@@ -105,7 +105,7 @@ visuels Canva, mise en page de documents, saisie.
 **Description** :
 
 ```
-Bonjour ! Je suis [Prénom], développeur web et mobile basé au [pays].
+Bonjour ! Je suis Prinel, développeur web et mobile basé au [pays].
 
 Je crée pour les petits commerces et les indépendants :
 ✅ des pages de commande en ligne reliées à WhatsApp
