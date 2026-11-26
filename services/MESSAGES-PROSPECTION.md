@@ -157,3 +157,136 @@ Voir un exemple 👉 https://prunelhoungue-lang.github.io/volt-bloc/services/dem
 3️⃣ Ne jamais publier de statut
 ✅ La solution : une page de commande avec vos produits et vos prix. Je peux vous en créer une 📩
 ```
+
+---
+
+## E. TikTok et Instagram
+
+**Astuce lien** : sur TikTok, les liens dans les descriptions ne sont pas cliquables, et le
+lien dans la bio n'est pas disponible pour tous les comptes. Mets ton numéro WhatsApp dans
+la bio et demande aux gens d'écrire « DÉMO » : tu leur envoies le lien en privé.
+Sur Instagram, mets le lien de la vitrine dans la bio.
+
+### Bio
+
+**TikTok**
+
+```
+📲 Je crée des pages de commande WhatsApp pour les commerces
+📍 Porto-Novo · Bénin
+💬 Écris « DÉMO » en privé ou sur WhatsApp 01 62 24 99 23
+```
+
+**Instagram**
+
+```
+📲 Pages de commande WhatsApp + gestion de vos réseaux
+📍 Porto-Novo · Bénin
+👇 Voir une démo
+```
+
+(lien : https://prunelhoungue-lang.github.io/volt-bloc/services/)
+
+### Vidéo 1 — La démo (enregistrement d'écran, 15–20 s)
+
+À filmer : ouvre la démo, ajoute 2 plats et un jus, appuie sur « Commander », montre le message WhatsApp qui arrive.
+
+Texte à l'écran :
+
+1. « Tes clients commandent comme ça 👇 »
+2. « Ils choisissent… »
+3. « Le total se calcule tout seul »
+4. « Et TOI tu reçois ça sur WhatsApp ✅ »
+
+Description :
+
+```
+Commerçants de Porto-Novo 👀 Vos clients choisissent sur leur téléphone et la commande vous arrive déjà prête sur WhatsApp. Écrivez « DÉMO » en privé 📩
+#portonovo #benin #cotonou #commercant #whatsappbusiness #entrepreneur #restaurantbenin
+```
+
+### Vidéo 2 — Le problème (face caméra ou texte, 10–15 s)
+
+Texte à l'écran :
+
+1. « POV : tu vends sur WhatsApp 😩 »
+2. « “C'est combien ?” »
+3. « “Envoie les photos” »
+4. « “Ça fait combien en tout ?” »
+5. « Il existe plus simple 👇 » (montrer la démo)
+
+Description :
+
+```
+20 messages pour une seule commande ? 😅 Il existe plus simple. Écrivez « DÉMO » 📩
+#portonovo #benin #venteenligne #whatsapp #commercebenin
+```
+
+### Vidéo 3 — Avant / Après (pour l'offre réseaux)
+
+À filmer : une photo de produit ordinaire, puis la belle affiche Canva faite avec la même photo.
+
+Texte à l'écran : « Avant ❌ » → « Après ✅ » → « Ta boutique mérite mieux 🔥 »
+
+Description :
+
+```
+Même produit, autre résultat 🔥 Je m'occupe des publications des commerces : 3 par semaine, visuels + vidéos. Écrivez-moi 📩
+#portonovo #benin #canva #marketingdigital #boutiquebenin
+```
+
+### Vidéo 4 — Astuce gratuite (face caméra, 20–30 s)
+
+Texte à dire :
+
+```
+3 erreurs qui font perdre des clients sur WhatsApp.
+Un : répondre « écris en privé » sans donner le prix.
+Deux : envoyer 20 photos une par une.
+Trois : ne jamais publier de statut.
+La solution : une page avec tous tes produits et tes prix. Écris-moi « DÉMO ».
+```
+
+### Instagram — Post carrousel (3 images Canva)
+
+1. « Tu vends sur WhatsApp ? 📲 »
+2. « Tes clients choisissent, le total se calcule tout seul »
+3. « Tu reçois la commande déjà prête ✅ — lien dans la bio »
+
+Description :
+
+```
+Commerçants de Porto-Novo 👋 Une page avec tous vos produits et vos prix, et les commandes arrivent sur votre WhatsApp, déjà prêtes. Démo dans la bio 👆
+#portonovo #benin #commercant #whatsappbusiness #entrepreneurbenin
+```
+
+### Réponses aux commentaires et messages
+
+**Quelqu'un commente « DÉMO » ou « intéressé »**
+
+```
+Merci 🙏 Je t'envoie la démo en privé 📩
+```
+
+**Puis en privé**
+
+```
+Salut 👋 Voici la démo comme promis 👇
+https://prunelhoungue-lang.github.io/volt-bloc/services/demo-resto/
+Essaie de passer une commande. Tu vends quoi, toi ? Je peux te faire la même avec tes produits 😊
+```
+
+**Message privé à un vendeur trouvé sur TikTok ou Instagram**
+
+```
+Salut 👋 Je viens de voir ta vidéo, tes [produits] sont top 🔥
+Tu prends la plupart de tes commandes par message ?
+```
+
+(puis suivre les messages 2 à 5 de la partie A)
+
+### Rythme
+
+- TikTok : 3 vidéos par semaine (les mêmes peuvent aller sur Instagram en « Reels »).
+- Instagram : 1 carrousel par semaine + statuts (stories) avec la démo.
+- Chaque jour : répondre à tous les commentaires et messages dans l'heure.
