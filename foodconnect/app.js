@@ -16,7 +16,7 @@ const DEMO_TRIP_MS = 3 * 60 * 1000; // durée simulée d'une livraison
 const CENTER = { lat: 6.3654, lng: 2.4183, label: 'Cotonou' };
 /* Numéro WhatsApp qui reçoit TOUTES les commandes (format international, sans +).
  * Exemple : '2290197123456'. Laisse vide pour que le client choisisse le contact lui-même. */
-const ORDER_WA = '';
+const ORDER_WA = '2290162249923';
 const SUPPORT_WA = ORDER_WA;
 const WA_MODE = true; // true = les commandes partent par WhatsApp (avant Firebase)
 
