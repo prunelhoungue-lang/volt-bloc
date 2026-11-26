@@ -14,7 +14,11 @@ const uid = p => p + Math.random().toString(36).slice(2, 9);
 const COMMISSION = 0.07;            // part de la plateforme sur chaque commande
 const DEMO_TRIP_MS = 3 * 60 * 1000; // durée simulée d'une livraison
 const CENTER = { lat: 6.3654, lng: 2.4183, label: 'Cotonou' };
-const SUPPORT_WA = '2290100000000'; // numéro WhatsApp du support (à remplacer)
+/* Numéro WhatsApp qui reçoit TOUTES les commandes (format international, sans +).
+ * Exemple : '2290197123456'. Laisse vide pour que le client choisisse le contact lui-même. */
+const ORDER_WA = '';
+const SUPPORT_WA = ORDER_WA;
+const WA_MODE = true; // true = les commandes partent par WhatsApp (avant Firebase)
 
 function km(a, b) {
   const R = 6371, t = x => x * Math.PI / 180;
@@ -32,7 +36,17 @@ function normPhone(p) {
   return '+229 ' + d.replace(/(\d{2})(?=\d)/g, '$1 ');
 }
 const telHref = p => 'tel:' + String(p).replace(/[^\d+]/g, '');
-const waHref = (p, txt = '') => 'https://wa.me/' + String(p).replace(/\D/g, '') + (txt ? '?text=' + encodeURIComponent(txt) : '');
+const waHref = (p, txt = '') => 'https://wa.me/' + String(p || '').replace(/\D/g, '') + (txt ? '?text=' + encodeURIComponent(txt) : '');
+// Ouvre une autre application (WhatsApp, Google Maps) depuis l'APK ou le navigateur
+function openExt(url) { if (window.Capacitor) location.href = url; else window.open(url, '_blank'); }
+function orderText(o) {
+  const L = [`🍽️ *Nouvelle commande FoodConnect #${o.id}*`, '', `*Restaurant :* ${o.rname}`, ''];
+  o.items.forEach(i => L.push(`• ${i.qty} × ${i.name} — ${F(i.qty * i.price)}`));
+  L.push('', `Sous-total : ${F(o.sub)}`, `Livraison : ${F(o.fee)}`, `*Total : ${F(o.total)}*`, '', `*Paiement :* ${o.pay.label}`, '',
+    `*Client :* ${o.cname}`, `*Téléphone :* ${o.cphone}`, `*Adresse :* ${o.address.label}${o.address.note ? ' — ' + o.address.note : ''}`,
+    `📍 Position : https://maps.google.com/?q=${o.address.lat.toFixed(6)},${o.address.lng.toFixed(6)}`);
+  return L.join('\n');
+}
 async function hash(s) {
   try {
     const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode('fc:' + s));
@@ -259,6 +273,7 @@ const STATUS = {
   en_route: ['En livraison', 'b-route'], livree: ['Livrée', 'b-done'], refusee: ['Refusée', 'b-ref'],
 };
 const badge = s => `<span class="badge ${STATUS[s][1]}">${STATUS[s][0]}</span>`;
+const obadge = o => o.wa && o.status === 'nouvelle' ? '<span class="badge b-done">Envoyée WhatsApp</span>' : badge(o.status);
 function setStatus(o, s) {
   o.status = s; o.t = o.t || {};
   o.t[{ acceptee: 'accepted', prete: 'ready', en_route: 'picked', livree: 'delivered', refusee: 'refused' }[s]] = Date.now();
@@ -296,7 +311,7 @@ function spaceHome(u = me()) {
   return { resto: '#/rd/dash', driver: '#/dv', admin: '#/ad/home' }[u.role] || '#/home';
 }
 function bottomNav(cur) {
-  const n = S.orders.filter(o => me() && o.cid === me().id && !['livree', 'refusee'].includes(o.status)).length;
+  const n = S.orders.filter(o => me() && o.cid === me().id && !o.wa && !['livree', 'refusee'].includes(o.status)).length;
   const it = (k, h, icn, label) => `<a href="${h}" class="${cur === k ? 'on' : ''}">${ic(icn, 22)}${label}${k === 'orders' && n ? `<span class="dot">${n}</span>` : ''}</a>`;
   return `<nav class="nav"><div>${it('home', '#/home', 'home', 'Accueil')}${it('explore', '#/explore', 'search', 'Explorer')}${it('orders', '#/orders', 'receipt', 'Commandes')}${it('account', '#/account', 'user', 'Compte')}</div></nav>`;
 }
@@ -378,16 +393,18 @@ const A = window.A = {
     if (!me() || me().role !== 'client') { S.after = '#/address?next=pay'; save(); toast('Crée ton compte pour commander.'); return go('#/register'); }
     go('#/address?next=pay');
   },
-  pay(m) { S.payMethod = m; save(); document.querySelectorAll('.pm').forEach(b => b.classList.toggle('on', b.dataset.m === m)); $('#mmphone').style.display = m === 'cash' ? 'none' : ''; },
+  pay(m) { S.payMethod = m; save(); document.querySelectorAll('.pm').forEach(b => b.classList.toggle('on', b.dataset.m === m)); const x = $('#mmphone'); if (x) x.style.display = m === 'cash' ? 'none' : ''; },
+  sendWa(id) { const o = order(id); if (o) openExt(waHref(ORDER_WA, orderText(o))); },
   async confirmPay() {
     const u = me(), c = S.cart; if (!u || !c) return go('#/home');
     const m = S.payMethod || 'mtn';
     let num = null;
-    if (m !== 'cash') { num = normPhone($('#mmnum').value); if (!num) return toast('Numéro Mobile Money invalide.'); }
+    if (m !== 'cash' && !WA_MODE) { num = normPhone($('#mmnum').value); if (!num) return toast('Numéro Mobile Money invalide.'); }
     const r = resto(c.rid), items = cartItems();
     const sub = items.reduce((s, i) => s + i.price * i.qty, 0), fee = deliveryFee(km(r, here()));
-    const label = { mtn: 'MTN Mobile Money', moov: 'Moov Money', celtiis: 'Celtiis Cash', cash: 'Espèces à la livraison' }[m];
-    if (m !== 'cash') {
+    const label = WA_MODE ? { mtn: 'MTN Mobile Money (après confirmation)', moov: 'Moov Money (après confirmation)', celtiis: 'Celtiis Cash (après confirmation)', cash: 'Espèces à la livraison' }[m]
+      : { mtn: 'MTN Mobile Money', moov: 'Moov Money', celtiis: 'Celtiis Cash', cash: 'Espèces à la livraison' }[m];
+    if (m !== 'cash' && !WA_MODE) {
       sheet(`<div style="text-align:center"><div class="spin"></div><h3>Confirme sur ton téléphone</h3>
         <p class="muted">Une demande de paiement de <b>${F(sub + fee)}</b> est envoyée au ${esc(num)} (${label}).<br>Valide avec ton code secret.</p>
         <p class="sm muted">Démo : le paiement est simulé, aucun argent n'est débité.</p></div>`);
@@ -397,10 +414,11 @@ const A = window.A = {
       id: S.seq++, cid: u.id, cname: u.name, cphone: u.phone, rid: r.id, rname: r.name,
       items: items.map(i => ({ name: i.name, price: i.price, qty: i.qty, emoji: i.emoji })),
       sub, fee, total: sub + fee, commission: Math.round(sub * COMMISSION),
-      address: { ...here() }, pay: { method: m, label, phone: num, paid: m !== 'cash' },
-      status: 'nouvelle', t: { created: Date.now() }, driver: null,
+      address: { ...here() }, pay: { method: m, label, phone: num, paid: m !== 'cash' && !WA_MODE },
+      status: 'nouvelle', t: { created: Date.now() }, driver: null, wa: WA_MODE,
     };
     S.orders.unshift(o); S.cart = null; save(); closeSheet();
+    if (WA_MODE) { go('#/track/' + o.id); setTimeout(() => A.sendWa(o.id), 300); return; }
     toast(m === 'cash' ? 'Commande envoyée au restaurant !' : 'Paiement reçu, commande envoyée !');
     go('#/track/' + o.id);
   },
@@ -462,7 +480,7 @@ const A = window.A = {
     if (!await ask('Commande livrée ?', o.pay.paid ? 'Confirme que le client a reçu sa commande.' : `Encaisse ${F(o.total)} en espèces avant de confirmer.`, 'Oui, livrée')) return;
     setStatus(o, 'livree'); toast('Bravo, livraison terminée !'); go('#/dv');
   },
-  navTo(lat, lng) { window.open(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`, '_blank'); },
+  navTo(lat, lng) { openExt(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&travelmode=driving`); },
   // admin
   aResto(rid) { const r = resto(rid); r.suspended = !r.suspended; save(); render(); },
   async reset() {
@@ -719,23 +737,25 @@ V.pay = () => {
   if (!S.cart) return go('#/home');
   if (!me()) return go('#/register');
   const r = resto(S.cart.rid), sub = cartSub(), fee = deliveryFee(km(r, here())), m = S.payMethod || 'mtn';
+  const wa = WA_MODE, after = 'Vous payez après confirmation du restaurant';
   const pm = (k, name, sub2, lg) => `<button class="pm ${m === k ? 'on' : ''}" data-m="${k}" onclick="A.pay('${k}')">${lg}<div class="sp"><b>${name}</b><div class="sm muted">${sub2}</div></div><span class="radio"></span></button>`;
   return {
     h: `<div class="scr" style="padding-bottom:120px"><div class="top"><button class="ib" onclick="back('#/cart')">${ic('back')}</button><h1>Choisir un moyen de paiement</h1></div>
     <div class="pad">
-      ${pm('mtn', 'MTN Mobile Money', 'Payez avec votre compte MTN MoMo', '<span class="lg" style="background:#ffcc00;color:#004f71">MTN<br>MoMo</span>')}
-      ${pm('moov', 'Moov Money', 'Payez avec votre compte Moov Money', '<span class="lg" style="background:#0a4ea2;color:#fff">Moov<br><span style="color:#ff8a00">Money</span></span>')}
-      ${pm('celtiis', 'Celtiis Cash', 'Payez avec votre compte Celtiis Cash', '<span class="lg" style="background:#0f9d58;color:#fff">Celtiis<br>Cash</span>')}
+      ${pm('mtn', 'MTN Mobile Money', wa ? after : 'Payez avec votre compte MTN MoMo', '<span class="lg" style="background:#ffcc00;color:#004f71">MTN<br>MoMo</span>')}
+      ${pm('moov', 'Moov Money', wa ? after : 'Payez avec votre compte Moov Money', '<span class="lg" style="background:#0a4ea2;color:#fff">Moov<br><span style="color:#ff8a00">Money</span></span>')}
+      ${pm('celtiis', 'Celtiis Cash', wa ? after : 'Payez avec votre compte Celtiis Cash', '<span class="lg" style="background:#0f9d58;color:#fff">Celtiis<br>Cash</span>')}
       ${pm('cash', 'Espèces à la livraison', 'Vous payez le livreur en main propre', '<span class="lg" style="background:#efe8e2;font-size:24px">💵</span>')}
-      <div id="mmphone" style="${m === 'cash' ? 'display:none' : ''}"><div class="lbl" style="margin-top:8px">Numéro Mobile Money</div>
-      <div class="field">${ic('phone', 20)}<input id="mmnum" type="tel" inputmode="tel" value="${esc(me().phone)}"></div></div>
+      ${wa ? '' : `<div id="mmphone" style="${m === 'cash' ? 'display:none' : ''}"><div class="lbl" style="margin-top:8px">Numéro Mobile Money</div>
+      <div class="field">${ic('phone', 20)}<input id="mmnum" type="tel" inputmode="tel" value="${esc(me().phone)}"></div></div>`}
       <div class="card" style="margin-top:6px">
         <div class="row sm"><span class="sp muted">${esc(r.name)} (${cartCount()} articles)</span><span>${F(sub)}</span></div><div style="height:6px"></div>
         <div class="row sm"><span class="sp muted">Livraison</span><span>${F(fee)}</span></div><div style="height:6px"></div>
         <div class="row sm"><span class="sp muted">Livré à</span><span style="text-align:right;max-width:60%">${esc(here().label)}</span></div>
         <hr style="border:0;border-top:1px solid var(--line);margin:12px 0"><div class="row"><b class="sp">Total à payer</b><b style="font-size:19px">${F(sub + fee)}</b></div></div>
-      <div class="row card" style="margin-top:12px;box-shadow:none;background:#f0ebe6">${ic('shield', 26)}<div class="sm"><b>Paiement sécurisé</b><div class="muted">Vous confirmez le paiement sur votre téléphone avec votre code secret. FoodConnect ne voit jamais ce code.</div></div></div>
-    </div><div class="fixb"><div><button class="btn" onclick="A.confirmPay()">Payer maintenant • ${F(sub + fee)}</button></div></div></div>`,
+      ${wa ? `<div class="row card" style="margin-top:12px;box-shadow:none;background:#e8f7ee">${ic('chat', 26)}<div class="sm"><b>Commande par WhatsApp</b><div class="muted">WhatsApp va s'ouvrir avec ta commande déjà écrite. Appuie sur « Envoyer » : on te confirme le délai et le paiement par message.</div></div></div>`
+        : `<div class="row card" style="margin-top:12px;box-shadow:none;background:#f0ebe6">${ic('shield', 26)}<div class="sm"><b>Paiement sécurisé</b><div class="muted">Vous confirmez le paiement sur votre téléphone avec votre code secret. FoodConnect ne voit jamais ce code.</div></div></div>`}
+    </div><div class="fixb"><div><button class="btn ${wa ? 'g' : ''}" onclick="A.confirmPay()">${wa ? ic('chat', 20) + ' Envoyer la commande sur WhatsApp' : 'Payer maintenant • ' + F(sub + fee)}</button></div></div></div>`,
   };
 };
 
@@ -755,12 +775,15 @@ V.track = id => {
   const o = order(id); if (!o) return go('#/orders');
   const dr = o.driver && userOf(o.driver), r = resto(o.rid);
   const live = ['prete', 'en_route'].includes(o.status) && dr;
-  const head = o.status === 'refusee' ? (o.cancelled ? 'Commande annulée' : 'Commande refusée par le restaurant')
+  const head = o.wa && o.status === 'nouvelle' ? 'Envoyée par WhatsApp' : o.status === 'refusee' ? (o.cancelled ? 'Commande annulée' : 'Commande refusée par le restaurant')
     : o.status === 'livree' ? 'Commande livrée' : o.status === 'en_route' ? 'En cours de livraison' : 'En cours de préparation';
   return {
     h: `<div class="scr"><div class="top"><button class="ib" onclick="go('#/orders')">${ic('back')}</button><h1>Commande #${o.id}<small style="color:${o.status === 'refusee' ? 'var(--red)' : 'var(--green)'}">${head}</small></h1></div>
     <div class="pad">
     ${o.status === 'refusee' ? `<div class="card"><p style="margin:0">${o.cancelled ? 'Tu as annulé cette commande.' : 'Le restaurant n\'a pas pu prendre ta commande.'} ${o.pay.paid ? 'Le montant de <b>' + F(o.total) + '</b> est remboursé sur ton compte ' + esc(o.pay.label) + '.' : ''}</p></div>`
+        : o.wa && o.status === 'nouvelle' ? `<div class="card" style="text-align:center"><div style="font-size:46px">📲</div><b>Commande prête à partir sur WhatsApp</b>
+          <p class="sm muted">Si tu n'as pas encore appuyé sur « Envoyer » dans WhatsApp, ta commande n'est pas partie. On te répond sur WhatsApp pour confirmer le délai et le paiement.</p>
+          <button class="btn g" onclick="A.sendWa(${o.id})">${ic('chat', 20)} Ouvrir WhatsApp</button></div>`
         : `<div class="card">${timeline(o)}</div>`}
     ${live ? `<div class="map" id="m-trk" style="margin-top:12px;height:220px;min-height:0"></div>
       <div class="card row" style="margin-top:12px"><div class="av" style="width:48px;height:48px;font-size:20px">🛵</div><div class="sp"><div class="sm muted">Votre livreur</div><b>${esc(dr.name)}</b><div class="sm" id="eta">${etaTxt(o)}</div></div>
@@ -769,14 +792,14 @@ V.track = id => {
     ${o.status === 'livree' ? `<div class="card" style="margin-top:12px;text-align:center"><b>${o.rated ? 'Merci pour ta note !' : 'Comment était ton repas ?'}</b>
       <div style="font-size:34px;margin-top:6px;letter-spacing:6px">${[1, 2, 3, 4, 5].map(n => `<span style="cursor:pointer;color:${(o.rated || 0) >= n ? '#f5a300' : '#ddd'}" onclick="A.rate(${o.id},${n})">★</span>`).join('')}</div></div>` : ''}
     <div class="card" style="margin-top:12px">
-      <div class="row"><b class="sp">${esc(o.rname)}</b>${badge(o.status)}</div><div style="height:8px"></div>
+      <div class="row"><b class="sp">${esc(o.rname)}</b>${obadge(o)}</div><div style="height:8px"></div>
       ${o.items.map(i => `<div class="row sm" style="padding:3px 0"><span class="sp">${i.qty} × ${esc(i.name)}</span><span>${F(i.qty * i.price)}</span></div>`).join('')}
       <div class="row sm" style="padding:3px 0"><span class="sp muted">Livraison</span><span>${F(o.fee)}</span></div>
       <hr style="border:0;border-top:1px solid var(--line);margin:10px 0"><div class="row"><b class="sp">Total</b><b>${F(o.total)}</b></div>
       <div class="sm muted" style="margin-top:8px">${esc(o.pay.label)}${o.pay.paid ? ' • payé' : ' • à payer au livreur'}<br>${ic('pin', 14)} ${esc(o.address.label)}${o.address.note ? ' — ' + esc(o.address.note) : ''}</div>
-      ${o.status === 'nouvelle' ? `<button class="btn ghost" style="color:var(--red)" onclick="A.cancel(${o.id})">Annuler la commande</button>` : ''}
+      ${o.status === 'nouvelle' && !o.wa ? `<button class="btn ghost" style="color:var(--red)" onclick="A.cancel(${o.id})">Annuler la commande</button>` : ''}
       <a class="btn ghost" href="${telHref(r.phone)}">${ic('phone', 18)} Appeler le restaurant</a></div>
-    ${!['livree', 'refusee'].includes(o.status) ? `<div class="demo-note" style="margin-top:12px">Démo : le restaurant et le livreur font avancer la commande depuis leur espace (Compte → Espaces). <a href="#" onclick="event.preventDefault();A.demoNext(${o.id})" style="font-weight:700">Passer à l'étape suivante</a></div>` : ''}
+    ${!['livree', 'refusee'].includes(o.status) && !o.wa ? `<div class="demo-note" style="margin-top:12px">Démo : le restaurant et le livreur font avancer la commande depuis leur espace (Compte → Espaces). <a href="#" onclick="event.preventDefault();A.demoNext(${o.id})" style="font-weight:700">Passer à l'étape suivante</a></div>` : ''}
     </div></div>`,
     nav: 'orders',
     after() {
@@ -807,7 +830,7 @@ V.orders = () => {
   return {
     nav: 'orders',
     h: `<div class="scr"><div class="top"><h1>Mes commandes</h1></div><div class="pad">
-    ${list.map(o => `<a class="oc" href="#/track/${o.id}"><div class="row"><b class="sp">${esc(o.rname)}</b>${badge(o.status)}</div>
+    ${list.map(o => `<a class="oc" href="#/track/${o.id}"><div class="row"><b class="sp">${esc(o.rname)}</b>${obadge(o)}</div>
       <div class="sm muted" style="margin-top:4px">#${o.id} • ${dday(o.t.created)} à ${hhmm(o.t.created)} • ${o.items.reduce((s, i) => s + i.qty, 0)} article(s)</div>
       <div class="row" style="margin-top:6px"><span class="sm sp">${esc(o.items.map(i => i.name).join(', '))}</span><b>${F(o.total)}</b></div></a>`).join('')
       || '<div style="text-align:center;padding-top:40px"><div style="font-size:64px">🍽️</div><p class="muted">Aucune commande pour le moment.</p><a class="btn" href="#/home">Commander maintenant</a></div>'}
