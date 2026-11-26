@@ -24,7 +24,7 @@ jobs:
         working-directory: .
         run: |
           mkdir -p campus-app/www
-          cp campus/index.html campus-app/www/index.html
+          cp campus/index.html campus/firebase.js campus-app/www/
           cat > campus-app/package.json <<'EOF'
           {
             "name": "campus-services",
