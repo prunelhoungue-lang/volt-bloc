@@ -75,8 +75,8 @@ input,select,textarea{font:inherit;border:1px solid var(--line);border-radius:10
 </form></dialog>
 
 <script>
-// Numéro WhatsApp du restaurant (démo : remplace par le vrai numéro du client).
-const WHATSAPP='229XXXXXXXXXX';
+// Démo : les commandes de test arrivent chez Prinel. Pour un vrai client, mettre son numéro.
+const WHATSAPP='2290162249923';
 const MENU=[
  {cat:'Plats',items:[
   ['🍛','Riz au gras + poulet','Riz parfumé, poulet braisé, sauce tomate',1500],
@@ -120,7 +120,7 @@ document.getElementById('cancel').onclick=()=>dlg.close();
 form.onsubmit=e=>{
  e.preventDefault();const f=Object.fromEntries(new FormData(form));
  const liv=f.mode.startsWith('Livraison')?500:0,t=upd()+liv;
- const msg=`🍲 *Nouvelle commande — Chez Tantie*\n\n${lines()}\n${liv?'Livraison — '+fmt(liv)+'\n':''}*Total : ${fmt(t)}*\n\n👤 ${f.nom}\n🚚 ${f.mode}${f.adr?'\n📍 '+f.adr:''}${f.rem?'\n📝 '+f.rem:''}`;
+ const msg=`🧪 *DÉMO* — 🍲 *Nouvelle commande — Chez Tantie*\n\n${lines()}\n${liv?'Livraison — '+fmt(liv)+'\n':''}*Total : ${fmt(t)}*\n\n👤 ${f.nom}\n🚚 ${f.mode}${f.adr?'\n📍 '+f.adr:''}${f.rem?'\n📝 '+f.rem:''}`;
  window.open('https://wa.me/'+WHATSAPP.replace(/\D/g,'')+'?text='+encodeURIComponent(msg),'_blank','noopener');
  dlg.close();
 };

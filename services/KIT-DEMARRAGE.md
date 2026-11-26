@@ -11,8 +11,13 @@ Outils prêts dans ce dossier :
 - `services/index.html` — ta **page vitrine** (offres, réalisations, contact WhatsApp)
 - `services/demo-resto/` — une **démo de restaurant** avec commande WhatsApp à montrer aux commerçants
 
-> ⚠️ Avant de partager : remplace `229XXXXXXXXXX` par ton numéro WhatsApp dans
-> `services/index.html` (et dans la démo si tu veux recevoir les commandes de test).
+Liens à partager (une fois GitHub Pages activé) :
+
+- Vitrine : https://prunelhoungue-lang.github.io/volt-bloc/services/
+- Démo : https://prunelhoungue-lang.github.io/volt-bloc/services/demo-resto/
+
+Les commandes de test de la démo arrivent sur ton WhatsApp, marquées « DÉMO ».
+Messages de prospection prêts à copier : `MESSAGES-PROSPECTION.md`.
 
 ---
 
