@@ -1,0 +1,28 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+.phone{position:absolute;left:150px;top:420px;width:780px;height:1360px;border-radius:70px;border:16px solid #1e293b;background:#0b141a;overflow:hidden;box-shadow:0 50px 100px #000a}
+.hd{background:#1f2c34;padding:36px 34px 28px;display:flex;align-items:center;gap:22px;font-size:34px;font-weight:700}
+.hd i{width:76px;height:76px;border-radius:50%;background:#7c3aed;display:flex;align-items:center;justify-content:center;font-style:normal;font-size:40px}
+.hd small{display:block;font-size:24px;font-weight:500;color:#8696a0}
+.chat{padding:26px 26px;display:flex;flex-direction:column;gap:16px;height:1180px;justify-content:flex-end;overflow:hidden}
+.m{max-width:78%;border-radius:8px 28px 28px 28px;padding:20px 26px;font-size:32px;line-height:1.35;background:#202c33;color:#e9edef}
+.m.me{align-self:flex-end;background:#005c4b;border-radius:28px 8px 28px 28px}
+.m.ph{padding:10px;width:300px;height:220px;background:#005c4b;border-radius:28px 8px 28px 28px;align-self:flex-end;display:flex;align-items:center;justify-content:center;font-size:110px}
+.count{position:absolute;right:40px;top:440px;z-index:15;background:#e11d48;border-radius:40px;padding:18px 30px;font-size:48px;font-weight:900;box-shadow:0 20px 40px #0008}
+.ok{position:absolute;left:110px;right:110px;top:700px;background:#005c4b;border-radius:36px 36px 10px 36px;padding:40px 44px;font-size:38px;line-height:1.5;color:#e9edef;box-shadow:0 40px 80px #000a}
+.ok b{font-weight:800}
+.ok .chk{position:absolute;right:-30px;top:-30px;width:110px;height:110px;border-radius:50%;background:#1faa59;display:flex;align-items:center;justify-content:center;font-size:64px;font-weight:900}
+</style></head><body>
+<div class="brand">PRINEL</div><div class="cap"></div>
+<div class="scene on" id="s1"><div class="phone"><div class="hd"><i>👤</i><div>Client<small>en train d'écrire…</small></div></div><div class="chat" id="chat"></div></div>
+<div class="count pop" id="cnt">0 message</div></div>
+<div class="scene" id="s2"><div class="ok pop" id="ok">🛒 <b>Nouvelle commande</b><br><br>2 × Riz au gras + poulet — 3 000 F<br>1 × Jus de bissap — 300 F<br>Livraison — 500 F<br><b>Total : 3 800 F</b><br><br>👤 Awa · 📍 Ouando<div class="chk">✓</div></div></div>
+<div class="scene end" id="end"><div class="b">PRINEL</div><h2>Je crée ta page<br>de commande <g>WhatsApp</g> 📲</h2><div class="c">💬 Écris « DÉMO »</div><p>WhatsApp +229 01 62 24 99 23</p></div>
+<script src="timeline.js"></script><script>
+const msgs=[['Bonsoir vous avez quoi aujourd\'hui ?'],['Envoie les photos stp'],['🍛','me','ph'],['🍗','me','ph'],['Le riz c\'est combien ?'],['1500','me'],['Et le poisson ?'],['2500','me'],['Vous livrez à Ouando ?'],['Oui +500','me'],['Ok je prends 2 riz et un jus'],['Ça fait combien en tout ?'],['Attends je calcule 😅','me'],['Allô ?? 😤']];
+let n=0;const chat=$('#chat');
+function add(){const [t,me,ph]=msgs[n++];const d=document.createElement('div');d.className='m pop'+(me?' me':'')+(ph?' ph':'');d.textContent=t;chat.appendChild(d);requestAnimationFrame(()=>requestAnimationFrame(()=>d.classList.add('on')));$('#cnt').textContent=(n*2)+' messages';}
+const st=[[200,()=>cap('POV : tu vends<br>sur <g>WhatsApp</g> 😩')],[600,()=>on('#cnt')]];
+msgs.forEach((_,i)=>st.push([i<4?650:420,add]));
+st.push([300,()=>cap('<em>28 messages</em><br>pour UNE commande 🤯')],[1800,()=>cap('Il existe<br><g>plus simple</g> 👇')],[900,()=>{off('#s1');on('#s2')}],[150,()=>on('#ok')],[100,()=>cap('UN seul message,<br>déjà <g>prêt</g> ✅')],[2600,()=>on('#end')]);
+run(st);
+</script></body></html>
