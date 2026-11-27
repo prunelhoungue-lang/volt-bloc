@@ -1,0 +1,4 @@
+categorie,nom,description,prix,ancien_prix,image,options,disponible
+Robes,Robe pagne wax,"Coupe évasée, taille ajustable",12000,15000,,"S,M,L,XL",OUI
+Chaussures,Baskets Air Street,Confortables,15000,,,"39,40,41,42,43",OUI
+Sacs,Sac à main cuir,Grand format,14000,,,"Noir,Marron",NON
