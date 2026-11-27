@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#111827">
+<meta name="robots" content="noindex">
 <title>Boutique en ligne — démo</title>
 <style>
 :root{--bg:#f6f6f8;--ink:#111827;--mute:#6b7280;--line:#e7e7ec;--pri:#111827;--acc:#e11d48;--wa:#1faa59;--r:16px}
@@ -130,6 +131,19 @@ Soins;Beurre de karité pur;Pot 250 g, fait au Bénin;2500;;🧴;;OUI
 Soins;Huile de coco;Flacon 100 ml;2000;;🥥;;OUI
 Maquillage;Rouge à lèvres mat;Longue tenue;3500;4500;💄;Rouge,Nude,Prune;OUI
 Maquillage;Kit pinceaux (12);Avec pochette;6000;;🖌️;;OUI`},
+ // Aperçu préparé pour un prospect (pas une boutique officielle) : les commandes test arrivent chez Prinel
+ emnashop:{
+  apercu:'Aperçu préparé par Prinel pour Univers des Enfants by EmnaShop — ce n\'est pas encore la boutique officielle.',
+  nom:'Univers des Enfants',slogan:'by EmnaShop · Vêtements & chaussures enfants · Cotonou',logo:'🧸',couleur:'#db2777',
+  infos:['✨ Chaque enfant mérite de briller','🚚 Livraison Cotonou & environs'],
+  livraison:1000,whatsapp:'2290162249923',sheet:'',
+  produits:`categorie;nom;description;prix;ancien_prix;image;options;disponible
+Ensembles;Ensemble chic marron;Haut transparent + short cargo;9000;;👧🏾;3 ans;OUI
+Ensembles;Ensemble rose jogging;Sweat + pantalon cargo;11000;;🎀;7 ans,8 ans,9 ans,10 ans,11 ans;OUI
+Robes;Robe noire à bretelles;Col blanc, très chic;5000;;👗;4 ans,5 ans,6 ans;OUI
+Robes;Robe blanche + gilet en jean;Tenue de fête;8000;;🤍;6 ans,7 ans;OUI
+Chaussures;Bottines;Blanches ou noires;10000;;👢;;OUI
+Chaussures;Fermée à brillant;Pour les cérémonies;7500;;👠;;OUI`},
  elec:{
   nom:'Volt Électricité',slogan:'Matériel électrique · Porto-Novo',logo:'⚡',couleur:'#b45309',
   infos:['🟢 Ouvert · 8 h – 19 h','🚚 Livraison sur chantier'],
@@ -175,6 +189,7 @@ function parse(txt){
 }
 
 function header(){
+ if(B.apercu)$('#demo').textContent='🧪 '+B.apercu;
  document.title=B.nom+' — commande en ligne';
  document.documentElement.style.setProperty('--pri',B.couleur);
  $('#logo').textContent=B.logo;$('#nom').textContent=B.nom;$('#slogan').textContent=B.slogan;
@@ -224,7 +239,7 @@ $('#lines').onclick=e=>{const p=e.target.dataset.p,m=e.target.dataset.m;
 $('#form').onsubmit=e=>{
  e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const L=lines();
  const liv=f.mode==='liv'?B.livraison:0;
- const txt=`🛍️ *Nouvelle commande — ${B.nom}*\n\n`+L.map(x=>`${x.v} × ${x.p.nom}${x.o?' ('+x.o+')':''} — ${fmt(x.v*x.p.prix)}`).join('\n')+
+ const txt=(B.apercu?'🧪 *APERÇU* — ':'')+`🛍️ *Nouvelle commande — ${B.nom}*\n\n`+L.map(x=>`${x.v} × ${x.p.nom}${x.o?' ('+x.o+')':''} — ${fmt(x.v*x.p.prix)}`).join('\n')+
   (liv?`\nLivraison — ${fmt(liv)}`:'')+`\n*Total : ${fmt(total().t+liv)}*\n\n👤 ${f.nom}\n🚚 ${f.mode==='liv'?'Livraison':'Je passe récupérer'}`+(f.adr?`\n📍 ${f.adr}`:'')+(f.rem?`\n📝 ${f.rem}`:'');
  window.open('https://wa.me/'+B.whatsapp.replace(/\D/g,'')+'?text='+encodeURIComponent(txt),'_blank','noopener');
  $('#dlg').close();
