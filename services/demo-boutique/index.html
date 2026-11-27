@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#111827">
+<title>Boutique en ligne — démo</title>
+<style>
+:root{--bg:#f6f6f8;--ink:#111827;--mute:#6b7280;--line:#e7e7ec;--pri:#111827;--acc:#e11d48;--wa:#1faa59;--r:16px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,Segoe UI,Roboto,sans-serif;font-size:16px;overflow-x:hidden}
+button,input,select,textarea{font:inherit;color:inherit}
+.demo{background:#000;color:#fff;font-size:13px;text-align:center;padding:calc(8px + env(safe-area-inset-top)) 12px 8px}
+.demo a{color:#ffd28a}
+header{background:var(--pri);color:#fff;padding:20px 16px 16px}
+header .row{display:flex;align-items:center;gap:14px}
+.logo{flex:none;width:56px;height:56px;border-radius:16px;background:#ffffff2a;display:flex;align-items:center;justify-content:center;font-size:30px}
+header h1{margin:0;font-size:22px;line-height:1.15}
+header p{margin:3px 0 0;opacity:.8;font-size:14px}
+.chipline{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.pill{background:#ffffff1f;border-radius:999px;padding:4px 11px;font-size:13px}
+.search{margin-top:14px}
+.search input{width:100%;border:0;border-radius:12px;padding:12px 14px;background:#fff;color:var(--ink)}
+nav{display:flex;gap:8px;overflow-x:auto;padding:12px 16px;position:sticky;top:0;background:var(--bg);z-index:5;scrollbar-width:none;border-bottom:1px solid var(--line)}
+nav::-webkit-scrollbar{display:none}
+nav button{flex:none;border:1px solid var(--line);background:#fff;border-radius:999px;padding:8px 14px;font-size:14px;cursor:pointer}
+nav button.on{background:var(--pri);color:#fff;border-color:var(--pri)}
+main{max-width:900px;margin:0 auto;padding:12px 12px 130px}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+@media(min-width:640px){.grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.card{background:#fff;border:1px solid var(--line);border-radius:var(--r);overflow:hidden;display:flex;flex-direction:column;position:relative}
+.pic{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:72px;background:#f1f1f4}
+.pic img{width:100%;height:100%;object-fit:cover}
+.badge{position:absolute;top:10px;left:10px;border-radius:999px;padding:3px 9px;font-size:12px;font-weight:700;color:#fff;background:var(--acc)}
+.badge.out{background:#6b7280}
+.body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1}
+.body b{font-size:15px;line-height:1.25}
+.body small{color:var(--mute);font-size:13px;line-height:1.3}
+.price{display:flex;align-items:baseline;gap:8px;margin-top:auto}
+.price span{font-weight:800;font-size:17px}
+.price s{color:var(--mute);font-size:13px}
+.opt{border:1px solid var(--line);border-radius:10px;padding:7px 8px;font-size:14px;background:#fff;width:100%}
+.add{border:0;border-radius:11px;padding:10px;font-weight:700;background:var(--pri);color:#fff;cursor:pointer}
+.add:disabled{background:#d1d5db;color:#6b7280;cursor:default}
+.card.out .pic{filter:grayscale(1);opacity:.6}
+.empty{text-align:center;color:var(--mute);padding:40px 10px}
+.bar{position:fixed;left:0;right:0;bottom:0;background:#fff;border-top:1px solid var(--line);padding:12px 16px calc(12px + env(safe-area-inset-bottom));display:none;z-index:10}
+.bar.on{display:block}
+.bar .in{max-width:900px;margin:0 auto;display:flex;gap:12px;align-items:center}
+.bar .tot{flex:1;min-width:0}
+.bar .tot small{color:var(--mute);display:block}
+.bar .tot b{font-size:19px}
+.btn{border:0;border-radius:12px;padding:14px 16px;font-weight:700;font-size:16px;cursor:pointer;background:var(--wa);color:#fff}
+.btn.gh{background:#f3f4f6;color:var(--ink)}
+dialog{border:0;border-radius:18px;padding:0;width:min(94vw,480px);max-height:92vh;color:var(--ink)}
+dialog::backdrop{background:#0008}
+form{padding:18px;display:flex;flex-direction:column;gap:10px}
+form h3{margin:0}
+.line{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);padding:8px 0}
+.line .n{flex:1;min-width:0;font-size:14px}
+.line .n small{display:block;color:var(--mute)}
+.q{display:flex;align-items:center;gap:8px}
+.q button{width:32px;height:32px;border-radius:50%;border:0;background:#f3f4f6;font-size:18px;font-weight:700;cursor:pointer}
+.sum{display:flex;justify-content:space-between;font-weight:800;font-size:18px;padding-top:4px}
+label{display:flex;flex-direction:column;gap:4px;font-size:14px;font-weight:600;color:var(--mute)}
+input,select,textarea{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+.row2{display:flex;gap:8px}.row2 .btn{flex:1}
+.toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);background:#111827;color:#fff;padding:10px 16px;border-radius:10px;font-size:14px;opacity:0;transition:.25s;pointer-events:none;z-index:50}
+.toast.show{opacity:1}
+</style>
+</head>
+<body>
+<div class="demo" id="demo">Démo réalisée par <a href="../">Prinel</a> — votre boutique peut avoir la même.</div>
+<header>
+ <div class="row"><div class="logo" id="logo"></div><div><h1 id="nom"></h1><p id="slogan"></p></div></div>
+ <div class="chipline" id="infos"></div>
+ <div class="search"><input id="q" type="search" placeholder="Rechercher un produit…" aria-label="Rechercher"></div>
+</header>
+<nav id="cats"></nav>
+<main><div class="grid" id="grid"></div></main>
+
+<div class="bar" id="bar"><div class="in">
+ <div class="tot"><small id="nb"></small><b id="tot"></b></div>
+ <button class="btn" id="go">Voir mon panier</button>
+</div></div>
+
+<dialog id="dlg"><form id="form" method="dialog">
+ <h3>Mon panier</h3>
+ <div id="lines"></div>
+ <div class="sum"><span>Total</span><span id="sum"></span></div>
+ <label>Ton prénom<input name="nom" required maxlength="30"></label>
+ <label>Réception<select name="mode" id="mode"></select></label>
+ <label>Quartier / repère<input name="adr" maxlength="80" placeholder="Ex : Ouando, près de la pharmacie"></label>
+ <label>Remarque<textarea name="rem" rows="2" maxlength="160" placeholder="Ex : couleur noire si possible"></textarea></label>
+ <div class="row2"><button type="button" class="btn gh" id="cancel">Continuer mes achats</button><button class="btn" type="submit">Commander sur WhatsApp</button></div>
+</form></dialog>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ============================================================
+   RÉGLAGES DE LA BOUTIQUE — à changer pour chaque client
+   ============================================================ */
+const BOUTIQUES={
+ mode:{
+  nom:'Awa Fashion',slogan:'Vêtements, chaussures & sacs · Porto-Novo',logo:'👗',couleur:'#be185d',
+  infos:['🟢 Ouvert · 9 h – 20 h','🚚 Livraison Porto-Novo & Cotonou'],
+  livraison:1000,whatsapp:'2290162249923',
+  // Pour que le commerçant modifie lui-même : coller ici le lien CSV de son Google Sheets
+  sheet:'',
+  produits:`categorie;nom;description;prix;ancien_prix;image;options;disponible
+Robes;Robe pagne wax;Coupe évasée, taille ajustable;12000;15000;👗;S,M,L,XL;OUI
+Robes;Robe de soirée satin;Fluide, plusieurs couleurs;18000;;👗;S,M,L;OUI
+Chemises;Chemise homme lin;Manches courtes, très légère;8000;;👔;M,L,XL,XXL;OUI
+Chemises;Chemise wax homme;Motifs africains;9500;;👕;M,L,XL;NON
+Chaussures;Baskets Air Street;Confortables, semelle épaisse;15000;18000;👟;39,40,41,42,43,44,45;OUI
+Chaussures;Sandales femme;Cuir synthétique;6000;;👡;37,38,39,40,41;OUI
+Sacs;Sac à main cuir;Grand format, 3 poches;14000;;👜;Noir,Marron,Beige;OUI
+Sacs;Sac à dos étudiant;Résistant, porte-ordinateur;10000;;🎒;;OUI`},
+ beaute:{
+  nom:'Glam Beauty',slogan:'Perruques, mèches & cosmétiques · Porto-Novo',logo:'💇🏾‍♀️',couleur:'#7c3aed',
+  infos:['🟢 Ouvert · 9 h – 21 h','🚚 Livraison 24 h'],
+  livraison:1000,whatsapp:'2290162249923',sheet:'',
+  produits:`categorie;nom;description;prix;ancien_prix;image;options;disponible
+Perruques;Perruque lisse 20 pouces;Cheveux naturels, lace frontale;45000;55000;💇🏾‍♀️;Noir,Châtain,Blond;OUI
+Perruques;Perruque bouclée courte;Prête à porter;25000;;👩🏾‍🦱;Noir,Bordeaux;OUI
+Mèches;Mèches X-pression;Paquet de 3;3000;;🧶;1,1B,27,30;OUI
+Mèches;Mèches brésiliennes;Tissage 3 paquets;20000;;💁🏾‍♀️;;NON
+Soins;Beurre de karité pur;Pot 250 g, fait au Bénin;2500;;🧴;;OUI
+Soins;Huile de coco;Flacon 100 ml;2000;;🥥;;OUI
+Maquillage;Rouge à lèvres mat;Longue tenue;3500;4500;💄;Rouge,Nude,Prune;OUI
+Maquillage;Kit pinceaux (12);Avec pochette;6000;;🖌️;;OUI`},
+ elec:{
+  nom:'Volt Électricité',slogan:'Matériel électrique · Porto-Novo',logo:'⚡',couleur:'#b45309',
+  infos:['🟢 Ouvert · 8 h – 19 h','🚚 Livraison sur chantier'],
+  livraison:1500,whatsapp:'2290162249923',sheet:'',
+  produits:`categorie;nom;description;prix;ancien_prix;image;options;disponible
+Câbles;Câble 2,5 mm² (rouleau 100 m);Cuivre, norme NF;28000;;🧵;Rouge,Bleu,Vert-jaune;OUI
+Câbles;Câble 1,5 mm² (rouleau 100 m);Pour l'éclairage;18000;;🧵;Rouge,Bleu,Noir;OUI
+Prises & interrupteurs;Prise 2P+T 16 A;Encastrable, blanche;1200;;🔌;;OUI
+Prises & interrupteurs;Interrupteur va-et-vient;Encastrable;1000;;🔘;;OUI
+Éclairage;Ampoule LED 12 W;Lumière blanche, E27;800;1200;💡;;OUI
+Éclairage;Réglette LED 120 cm;36 W;5500;;🔦;;OUI
+Protection;Disjoncteur 20 A;Modulaire;3500;;🧯;;NON
+Protection;Coffret 8 modules;Encastrable;7500;;🗄️;;OUI`}
+};
+/* ============================================================ */
+
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>new Intl.NumberFormat('fr-FR').format(n)+' F';
+const norm=s=>String(s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'');
+function toast(m){const e=$('#toast');e.textContent=m;e.classList.add('show');clearTimeout(e._t);e._t=setTimeout(()=>e.classList.remove('show'),1800)}
+
+const cle=new URLSearchParams(location.search).get('boutique');
+const B=BOUTIQUES[cle]||BOUTIQUES.mode;
+let P=[],cat='Tout',q='';const cart=new Map(); // clé produit|option -> qté
+
+function parse(txt){
+ const sep=txt.split('\n')[0].includes(';')?';':',';
+ const rows=[];let row=[''],i=0,inq=false;
+ for(const ch of txt.replace(/\r/g,'')){
+  if(inq){if(ch==='"'){inq=false}else row[i]+=ch;continue}
+  if(ch==='"'){inq=true}else if(ch===sep){row[++i]=''}else if(ch==='\n'){rows.push(row);row=[''];i=0}else row[i]+=ch;
+ }
+ if(row.join(''))rows.push(row);
+ const h=rows.shift().map(x=>norm(x).trim());
+ const col=n=>h.indexOf(n);
+ return rows.filter(r=>r[col('nom')]&&r[col('nom')].trim()).map((r,k)=>{
+  const g=n=>(r[col(n)]||'').trim();
+  return{id:'p'+k,cat:g('categorie')||'Autres',nom:g('nom'),desc:g('description'),prix:parseInt(g('prix').replace(/\D/g,''))||0,
+   ancien:parseInt(g('ancien_prix').replace(/\D/g,''))||0,img:g('image')||'🛍️',
+   opts:g('options').split(',').map(x=>x.trim()).filter(Boolean),dispo:!/^(non|no|0|epuise)$/i.test(norm(g('disponible')))};
+ });
+}
+
+function header(){
+ document.title=B.nom+' — commande en ligne';
+ document.documentElement.style.setProperty('--pri',B.couleur);
+ $('#logo').textContent=B.logo;$('#nom').textContent=B.nom;$('#slogan').textContent=B.slogan;
+ $('#infos').innerHTML=B.infos.map(x=>`<span class="pill">${esc(x)}</span>`).join('');
+ $('#mode').innerHTML=(B.livraison?`<option value="liv">Livraison (+${fmt(B.livraison)})</option>`:'')+'<option value="ret">Je passe récupérer</option>';
+}
+function cats(){
+ const list=['Tout',...new Set(P.map(p=>p.cat))];
+ $('#cats').innerHTML=list.map(c=>`<button class="${c===cat?'on':''}" data-c="${esc(c)}">${esc(c)}</button>`).join('');
+}
+const img=s=>/^https?:\/\//.test(s)?`<img src="${esc(s)}" alt="" loading="lazy">`:esc(s);
+function grid(){
+ const w=norm(q).split(/\s+/).filter(Boolean);
+ const r=P.filter(p=>(cat==='Tout'||p.cat===cat)&&w.every(x=>norm(p.nom+' '+p.desc+' '+p.cat).includes(x)));
+ if(!r.length){$('#grid').innerHTML='<div class="empty" style="grid-column:1/-1">Aucun produit trouvé.</div>';return}
+ $('#grid').innerHTML=r.map(p=>`
+ <div class="card${p.dispo?'':' out'}">
+  <div class="pic">${img(p.img)}</div>
+  ${!p.dispo?'<span class="badge out">Épuisé</span>':p.ancien>p.prix?`<span class="badge">-${Math.round(100-p.prix*100/p.ancien)} %</span>`:''}
+  <div class="body"><b>${esc(p.nom)}</b>${p.desc?`<small>${esc(p.desc)}</small>`:''}
+   <div class="price"><span>${fmt(p.prix)}</span>${p.ancien>p.prix?`<s>${fmt(p.ancien)}</s>`:''}</div>
+   ${p.opts.length&&p.dispo?`<select class="opt" id="o-${p.id}" aria-label="Choix">${p.opts.map(o=>`<option>${esc(o)}</option>`).join('')}</select>`:''}
+   <button class="add" data-add="${p.id}" ${p.dispo?'':'disabled'}>${p.dispo?'Ajouter au panier':'Épuisé'}</button>
+  </div></div>`).join('');
+}
+function total(){let n=0,t=0;for(const[k,v]of cart){const p=P.find(x=>x.id===k.split('|')[0]);if(p){n+=v;t+=v*p.prix}}return{n,t}}
+function bar(){const{n,t}=total();$('#bar').classList.toggle('on',n>0);$('#nb').textContent=n+(n>1?' articles':' article');$('#tot').textContent=fmt(t)}
+function lines(){
+ const L=[...cart].map(([k,v])=>{const[id,o]=k.split('|');const p=P.find(x=>x.id===id);return{k,v,p,o}}).filter(x=>x.p);
+ $('#lines').innerHTML=L.map(x=>`<div class="line"><div class="n">${esc(x.p.nom)}${x.o?`<small>${esc(x.o)}</small>`:''}</div>
+  <div class="q"><button type="button" data-m="${esc(x.k)}">−</button><span>${x.v}</span><button type="button" data-p="${esc(x.k)}">+</button></div><b>${fmt(x.v*x.p.prix)}</b></div>`).join('');
+ const liv=$('#mode').value==='liv'?B.livraison:0;
+ $('#sum').textContent=fmt(total().t+liv)+(liv?' (livraison incluse)':'');
+ return L;
+}
+
+$('#cats').onclick=e=>{const b=e.target.closest('[data-c]');if(b){cat=b.dataset.c;cats();grid()}};
+$('#q').oninput=e=>{q=e.target.value;grid()};
+$('#grid').onclick=e=>{const b=e.target.closest('[data-add]');if(!b)return;const id=b.dataset.add;const o=$('#o-'+id);const k=id+'|'+(o?o.value:'');
+ cart.set(k,(cart.get(k)||0)+1);bar();toast('Ajouté au panier ✓')};
+$('#go').onclick=()=>{lines();$('#dlg').showModal()};
+$('#cancel').onclick=()=>$('#dlg').close();
+$('#mode').onchange=lines;
+$('#lines').onclick=e=>{const p=e.target.dataset.p,m=e.target.dataset.m;
+ if(p)cart.set(p,cart.get(p)+1);if(m){cart.set(m,cart.get(m)-1);if(!cart.get(m))cart.delete(m)}
+ bar();if(!cart.size){$('#dlg').close();return}lines()};
+$('#form').onsubmit=e=>{
+ e.preventDefault();const f=Object.fromEntries(new FormData(e.target));const L=lines();
+ const liv=f.mode==='liv'?B.livraison:0;
+ const txt=`🛍️ *Nouvelle commande — ${B.nom}*\n\n`+L.map(x=>`${x.v} × ${x.p.nom}${x.o?' ('+x.o+')':''} — ${fmt(x.v*x.p.prix)}`).join('\n')+
+  (liv?`\nLivraison — ${fmt(liv)}`:'')+`\n*Total : ${fmt(total().t+liv)}*\n\n👤 ${f.nom}\n🚚 ${f.mode==='liv'?'Livraison':'Je passe récupérer'}`+(f.adr?`\n📍 ${f.adr}`:'')+(f.rem?`\n📝 ${f.rem}`:'');
+ window.open('https://wa.me/'+B.whatsapp.replace(/\D/g,'')+'?text='+encodeURIComponent(txt),'_blank','noopener');
+ $('#dlg').close();
+};
+
+async function load(){
+ header();
+ let txt=B.produits;
+ if(B.sheet){try{const r=await fetch(B.sheet+(B.sheet.includes('?')?'&':'?')+'t='+Date.now());if(r.ok)txt=await r.text()}catch(e){console.warn('Tableau injoignable, produits par défaut utilisés')}}
+ P=parse(txt);cats();grid();bar();
+}
+load();
+</script>
+</body>
+</html>

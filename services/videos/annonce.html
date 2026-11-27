@@ -1,0 +1,30 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="base.css"><style>
+.big{position:absolute;left:0;right:0;top:560px;text-align:center;font-size:330px}
+.sub{position:absolute;left:90px;right:90px;top:1020px;text-align:center;font-size:54px;font-weight:700;line-height:1.3;opacity:.9}
+.mini{position:absolute;left:230px;top:500px;width:620px;border-radius:54px;border:14px solid #1e293b;background:#fbf7f2;padding:26px 22px;color:#2a1d14;box-shadow:0 40px 80px #000a}
+.it{display:flex;align-items:center;gap:18px;background:#fff;border:2px solid #eee3d6;border-radius:22px;padding:16px;margin-bottom:14px}
+.it .p{width:80px;height:80px;border-radius:16px;background:#fdebd8;display:flex;align-items:center;justify-content:center;font-size:46px}
+.it b{font-size:28px;display:block}.it small{font-size:26px;font-weight:800;color:#b3261e}
+.tot{display:flex;justify-content:space-between;align-items:center;background:#fff;border-radius:22px;padding:18px 20px;border:2px solid #eee3d6}
+.tot b{font-size:40px}.tot span{background:#1faa59;color:#fff;font-weight:800;padding:16px 22px;border-radius:16px;font-size:28px}
+.wa{position:absolute;left:150px;right:150px;top:1360px;background:#005c4b;border-radius:30px 30px 8px 30px;padding:28px 34px;font-size:32px;line-height:1.45;box-shadow:0 30px 60px #000a}
+.acc{display:flex;flex-direction:column;align-items:center;gap:30px}
+.acc .av{width:300px;height:300px;border-radius:50%;background:#0f172a;border:10px solid #ff6a2b;display:flex;flex-direction:column;align-items:center;justify-content:center;box-shadow:0 30px 60px #000a}
+.acc .av div{width:150px;height:150px;border-radius:38px;background:linear-gradient(145deg,#ff8a4d,#ff5a1a);display:flex;align-items:center;justify-content:center;font-size:110px;font-weight:900}
+.acc .h{font-size:76px;font-weight:900}
+.acc .btn{background:#fe2c55;border-radius:20px;padding:26px 90px;font-size:46px;font-weight:800}
+.share{font-size:42px;opacity:.9;line-height:1.35}
+</style></head><body>
+<div class="brand">NOUVEAU COMPTE 🚀</div><div class="cap"></div>
+<div class="scene on" id="s1"><div class="big">⚡</div><div class="sub">Électrotechnicien,<br>tu me connais 😎</div></div>
+<div class="scene" id="s2"><div class="mini pop" id="mini">
+ <div class="it"><div class="p">🍛</div><div><b>Riz au gras + poulet</b><small>1 500 F</small></div></div>
+ <div class="it"><div class="p">🍢</div><div><b>Brochettes (x3)</b><small>1 000 F</small></div></div>
+ <div class="it"><div class="p">🧃</div><div><b>Jus de bissap</b><small>300 F</small></div></div>
+ <div class="tot"><b>2 800 F</b><span>Commander</span></div></div>
+ <div class="wa pop" id="wa">🛒 <b>Nouvelle commande</b> · Total 2 800 F<br>→ directement sur WhatsApp ✅</div></div>
+<div class="scene end" id="s3"><div class="acc"><div class="av"><div>P</div></div><div class="h">@prinel.digital</div><div class="btn">Suivre</div></div>
+ <p class="share">Tu connais un commerçant ?<br><b style="color:#1faa59">Partage-lui cette vidéo</b> 🙏</p></div>
+<script src="timeline.js"></script><script>
+run([[200,()=>cap('Vous me connaissez<br>pour <em>l\'électricité</em>…')],[2400,()=>cap('Mais j\'ai un<br><g>nouveau projet</g> 👀')],[1300,()=>{off('#s1');on('#s2')}],[200,()=>on('#mini')],[100,()=>cap('Je crée des pages<br>de commande <g>WhatsApp</g>')],[1700,()=>on('#wa')],[200,()=>cap('pour les <em>commerçants</em><br>📲')],[2600,()=>{cap('');on('#s3')}],[3400,()=>{}]]);
+</script></body></html>

@@ -3,7 +3,13 @@
 Liens :
 
 - Vitrine : https://prunelhoungue-lang.github.io/volt-bloc/services/
-- Démo : https://prunelhoungue-lang.github.io/volt-bloc/services/demo-resto/
+- Démo restaurant : https://prunelhoungue-lang.github.io/volt-bloc/services/demo-resto/
+- Démo boutique mode : https://prunelhoungue-lang.github.io/volt-bloc/services/demo-boutique/?boutique=mode
+- Démo beauté / perruques : https://prunelhoungue-lang.github.io/volt-bloc/services/demo-boutique/?boutique=beaute
+- Démo matériel électrique : https://prunelhoungue-lang.github.io/volt-bloc/services/demo-boutique/?boutique=elec
+
+Envoie la démo **la plus proche** du commerce : mode pour vêtements/chaussures/sacs,
+beauté pour perruques/mèches/cosmétiques, électrique pour quincailleries.
 
 **Règles** : un message à la fois, attendre la réponse, jamais le prix dans le premier
 message, une seule relance, toujours poli. 10 nouveaux contacts par jour maximum,
@@ -36,6 +42,19 @@ Voici un exemple pour un restaurant 👇
 https://prunelhoungue-lang.github.io/volt-bloc/services/demo-resto/
 
 Essayez de commander, vous allez voir 😊
+```
+
+**Variante boutique** (vêtements, perruques, matériel…)
+
+```
+Je demande parce que je crée des boutiques en ligne pour les commerçants.
+Vos clients voient tous vos articles avec les prix, choisissent la taille ou la couleur, et la commande vous arrive déjà prête sur WhatsApp.
+Et quand un article est fini, vous le mettez « épuisé » vous-même depuis votre téléphone.
+
+Voici un exemple 👇
+https://prunelhoungue-lang.github.io/volt-bloc/services/demo-boutique/?boutique=mode
+
+Essayez d'ajouter un article au panier 😊
 ```
 
 **4 — La proposition**
