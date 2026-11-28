@@ -19,6 +19,9 @@ const CENTER = { lat: 6.3654, lng: 2.4183, label: 'Cotonou' };
 const ORDER_WA = '2290162249923';
 const SUPPORT_WA = ORDER_WA;
 const WA_MODE = true; // true = les commandes partent par WhatsApp (avant Firebase)
+/* Clé PUBLIQUE FedaPay (pk_sandbox_… pour tester, pk_live_… pour le vrai argent).
+ * Vide = pas de paiement en ligne : le client paie après confirmation ou en espèces. */
+const FEDAPAY_PUBLIC_KEY = '';
 
 function km(a, b) {
   const R = 6371, t = x => x * Math.PI / 180;
@@ -41,11 +44,36 @@ const waHref = (p, txt = '') => 'https://wa.me/' + String(p || '').replace(/\D/g
 function openExt(url) { if (window.Capacitor) location.href = url; else window.open(url, '_blank'); }
 function orderText(o) {
   const L = [`🍽️ *Nouvelle commande FoodConnect #${o.id}*`, '', `*Restaurant :* ${o.rname}`, ''];
-  o.items.forEach(i => L.push(`• ${i.qty} × ${i.name} — ${F(i.qty * i.price)}`));
+  if (o.group) {
+    L.push('👥 *Commande groupée*');
+    Object.keys(o.split).forEach(w => {
+      L.push('', `*${w}* — à payer : ${F(o.split[w])}`);
+      o.items.filter(i => i.who === w).forEach(i => L.push(`• ${i.qty} × ${i.name} — ${F(i.qty * i.price)}`));
+    });
+  } else o.items.forEach(i => L.push(`• ${i.qty} × ${i.name} — ${F(i.qty * i.price)}`));
   L.push('', `Sous-total : ${F(o.sub)}`, `Livraison : ${F(o.fee)}`, `*Total : ${F(o.total)}*`, '', `*Paiement :* ${o.pay.label}`, '',
     `*Client :* ${o.cname}`, `*Téléphone :* ${o.cphone}`, `*Adresse :* ${o.address.label}${o.address.note ? ' — ' + o.address.note : ''}`,
     `📍 Position : https://maps.google.com/?q=${o.address.lat.toFixed(6)},${o.address.lng.toFixed(6)}`);
   return L.join('\n');
+}
+function loadScript(src) {
+  return new Promise((res, rej) => {
+    if (document.querySelector(`script[src="${src}"]`)) return res();
+    const x = document.createElement('script'); x.src = src; x.onload = res; x.onerror = rej; document.head.appendChild(x);
+  });
+}
+// Paiement Mobile Money via FedaPay : le client valide avec son code secret sur son téléphone.
+async function fedapayPay(amount, u, description) {
+  await loadScript('https://cdn.fedapay.com/checkout.js?v=1.1.7');
+  const [first, ...rest] = u.name.split(' ');
+  return new Promise(res => {
+    const customer = { firstname: first, lastname: rest.join(' ') || first };
+    if (u.email) customer.email = u.email;
+    window.FedaPay.init({
+      public_key: FEDAPAY_PUBLIC_KEY, transaction: { amount, description }, customer,
+      onComplete(r) { const t = r && r.transaction; res(r && r.reason === window.FedaPay.CHECKOUT_COMPLETED && t && t.status === 'approved' ? t : null); },
+    }).open();
+  });
 }
 async function hash(s) {
   try {
@@ -375,18 +403,44 @@ const A = window.A = {
   },
   cat(c) { S.cat = c; save(); render(); },
   fav(rid) { S.fav = S.fav.includes(rid) ? S.fav.filter(x => x !== rid) : [...S.fav, rid]; save(); render(); },
-  async add(rid, did, delta) {
+  async add(rid, did, delta, who) {
     const r = resto(rid);
     if (!isOpen(r) && delta > 0) return toast('Ce restaurant est fermé pour le moment.');
     if (S.cart && S.cart.rid !== rid && delta > 0) {
       if (!await ask('Nouveau panier ?', `Ton panier contient des plats de ${resto(S.cart.rid).name}. On le vide pour commander ici ?`, 'Vider et ajouter')) return;
       S.cart = null;
     }
-    S.cart = S.cart || { rid, items: {} };
-    const q = (S.cart.items[did] || 0) + delta;
-    if (q <= 0) delete S.cart.items[did]; else S.cart.items[did] = q;
+    if (!S.cart) { S.cart = { rid, items: {} }; if (S.groupNext) { S.groupNext = false; startGroup(); } }
+    const k = ckey(did, who);
+    const q = (S.cart.items[k] || 0) + delta;
+    if (q <= 0) delete S.cart.items[k]; else S.cart.items[k] = q;
     if (!Object.keys(S.cart.items).length) S.cart = null;
     save(); const y = window.scrollY; render(); window.scrollTo(0, y);
+  },
+  groupStart() {
+    if (!S.cart) { S.groupNext = true; save(); toast('Choisis un restaurant : chaque personne ajoute ses plats.'); return go('#/explore'); }
+    startGroup(); save(); render();
+  },
+  groupStop() {
+    const it = {}; Object.entries(S.cart.items).forEach(([k, q]) => { const d = k.split('|')[0]; it[d] = (it[d] || 0) + q; });
+    S.cart.items = it; delete S.cart.group; delete S.cart.people; delete S.cart.who; save(); render();
+  },
+  who(name) { S.cart.who = name; save(); const y = scrollY; render(); scrollTo(0, y); },
+  addPerson() {
+    sheet(`<h3>Ajouter une personne</h3><p class="muted sm">Son prénom, pour savoir qui a pris quoi et combien chacun paie.</p>
+      <form onsubmit="event.preventDefault();A.savePerson(this.n.value)"><div class="field">${ic('user', 20)}<input name="n" placeholder="Ex : Awa" maxlength="20" required></div><button class="btn">Ajouter</button></form>`);
+    setTimeout(() => { const i = document.querySelector('#ov input'); if (i) i.focus(); }, 50);
+  },
+  savePerson(n) {
+    n = n.trim().replace(/[|]/g, ''); if (!n) return;
+    if (S.cart.people.includes(n)) return toast('Ce prénom est déjà dans la liste.');
+    S.cart.people.push(n); S.cart.who = n; save(); closeSheet(); toast(`Ajoute maintenant les plats de ${n}.`); render();
+  },
+  cmp(rid) {
+    S.cmp = S.cmp || [];
+    if (S.cmp.includes(rid)) S.cmp = S.cmp.filter(x => x !== rid);
+    else { if (S.cmp.length >= 3) return toast('3 restaurants maximum. Retire-en un d\'abord.'); S.cmp.push(rid); }
+    save(); render();
   },
   async clearCart() { if (await ask('Vider le panier ?', 'Tous les plats seront retirés.', 'Vider', true)) { S.cart = null; save(); render(); } },
   checkout() {
@@ -402,8 +456,15 @@ const A = window.A = {
     if (m !== 'cash' && !WA_MODE) { num = normPhone($('#mmnum').value); if (!num) return toast('Numéro Mobile Money invalide.'); }
     const r = resto(c.rid), items = cartItems();
     const sub = items.reduce((s, i) => s + i.price * i.qty, 0), fee = deliveryFee(km(r, here()));
-    const label = WA_MODE ? { mtn: 'MTN Mobile Money (après confirmation)', moov: 'Moov Money (après confirmation)', celtiis: 'Celtiis Cash (après confirmation)', cash: 'Espèces à la livraison' }[m]
-      : { mtn: 'MTN Mobile Money', moov: 'Moov Money', celtiis: 'Celtiis Cash', cash: 'Espèces à la livraison' }[m];
+    const names = { mtn: 'MTN Mobile Money', moov: 'Moov Money', celtiis: 'Celtiis Cash', cash: 'Espèces à la livraison' };
+    let label = WA_MODE && m !== 'cash' ? names[m] + ' (après confirmation)' : names[m], paidOnline = false;
+    if (WA_MODE && FEDAPAY_PUBLIC_KEY && m !== 'cash') {
+      let t = null;
+      try { t = await fedapayPay(sub + fee, u, `FoodConnect — ${r.name}`); }
+      catch (x) { return toast('Paiement indisponible. Vérifie ta connexion internet.'); }
+      if (!t) return toast('Paiement non effectué. Tu peux réessayer ou choisir « Espèces ».');
+      label = `${names[m]} — PAYÉ en ligne (transaction ${t.id})`; paidOnline = true;
+    }
     if (m !== 'cash' && !WA_MODE) {
       sheet(`<div style="text-align:center"><div class="spin"></div><h3>Confirme sur ton téléphone</h3>
         <p class="muted">Une demande de paiement de <b>${F(sub + fee)}</b> est envoyée au ${esc(num)} (${label}).<br>Valide avec ton code secret.</p>
@@ -412,9 +473,10 @@ const A = window.A = {
     }
     const o = {
       id: S.seq++, cid: u.id, cname: u.name, cphone: u.phone, rid: r.id, rname: r.name,
-      items: items.map(i => ({ name: i.name, price: i.price, qty: i.qty, emoji: i.emoji })),
+      items: items.map(i => ({ name: i.name, price: i.price, qty: i.qty, emoji: i.emoji, who: i.who })),
+      group: !!c.group, split: c.group ? groupSplit(items, fee) : null,
       sub, fee, total: sub + fee, commission: Math.round(sub * COMMISSION),
-      address: { ...here() }, pay: { method: m, label, phone: num, paid: m !== 'cash' && !WA_MODE },
+      address: { ...here() }, pay: { method: m, label, phone: num, paid: paidOnline || (m !== 'cash' && !WA_MODE) },
       status: 'nouvelle', t: { created: Date.now() }, driver: null, wa: WA_MODE,
     };
     S.orders.unshift(o); S.cart = null; save(); closeSheet();
@@ -457,15 +519,19 @@ const A = window.A = {
       <div style="width:90px"><div class="lbl">Icône</div><div class="field"><select name="emoji">${['🍛', '🍲', '🍝', '🐟', '🍗', '🍢', '🥘', '🍚', '🥬', '🧀', '🍕', '🍔', '🌯', '🍟', '🍌', '🥣', '🥗', '🧃', '🥤', '💧', '🍰'].map(e => `<option ${e === x.emoji ? 'selected' : ''}>${e}</option>`).join('')}</select></div></div></div>
       <div class="lbl">Catégorie</div><div class="field"><input name="section" value="${esc(x.section)}" placeholder="Plats, Boissons…"></div>
       <div class="lbl">Description</div><div class="field"><input name="desc" value="${esc(x.desc)}" placeholder="Ingrédients, portion…"></div>
+      <div class="lbl">Photo du plat</div><label class="field" style="cursor:pointer">${x.photo ? `<span class="pic" style="width:44px;height:44px;border-radius:10px;background:center/cover url('${esc(x.photo)}')"></span>` : ic('plus', 20)}<span class="sp" style="padding:15px 0">${x.photo ? 'Changer la photo' : 'Prendre ou choisir une photo'}</span><input name="photo" type="file" accept="image/*" style="display:none" onchange="this.previousElementSibling.textContent='Photo choisie ✓'"></label>
       <button class="btn">Enregistrer</button></form>`);
   },
-  rSave(e, did) {
+  async rSave(e, did) {
     e.preventDefault(); const f = e.target, r = resto(me().rid);
+    let photo = null;
+    if (f.photo.files[0]) { try { photo = await shrink(f.photo.files[0]); } catch (x) { return toast('Photo illisible, essaie une autre.'); } }
     const price = parseInt(String(f.price.value).replace(/\D/g, ''), 10);
     if (!price) return toast('Prix invalide.');
     const v = { name: f.name.value.trim(), price, emoji: f.emoji.value, section: f.section.value.trim() || 'Plats', desc: f.desc.value.trim() };
+    if (photo) v.photo = photo;
     if (did) Object.assign(r.menu.find(m => m.id === did), v); else r.menu.push({ id: uid('m'), off: false, popular: false, ...v });
-    save(); closeSheet(); toast('Menu mis à jour.'); render();
+    save(); if (photo && !localStorage.getItem(KEY)) toast('Mémoire pleine : photo trop lourde.'); else toast('Menu mis à jour.'); closeSheet(); render();
   },
   // livreur
   dOnline() { S.driverOnline = !S.driverOnline; save(); render(); },
@@ -489,11 +555,42 @@ const A = window.A = {
   },
 };
 
+const ckey = (did, who) => S.cart && S.cart.group ? did + '|' + (who || S.cart.who) : did;
+function startGroup() {
+  const me1 = (me() && me().name.split(' ')[0]) || 'Moi';
+  const it = {}; Object.entries(S.cart.items).forEach(([k, q]) => { it[k.split('|')[0] + '|' + me1] = q; });
+  Object.assign(S.cart, { group: true, people: [me1], who: me1, items: it });
+}
 function cartItems() {
   if (!S.cart) return [];
   const r = resto(S.cart.rid);
-  return Object.entries(S.cart.items).map(([id, qty]) => ({ ...r.menu.find(m => m.id === id), qty })).filter(i => i.name);
+  return Object.entries(S.cart.items).map(([k, qty]) => { const [id, who] = k.split('|'); return { ...r.menu.find(m => m.id === id), qty, who }; }).filter(i => i.name);
 }
+// Part de chacun : ses plats + la livraison divisée entre les personnes qui ont commandé
+function groupSplit(items, fee) {
+  const out = {}, ppl = [...new Set(items.map(i => i.who))];
+  ppl.forEach(w => { out[w] = items.filter(i => i.who === w).reduce((s, i) => s + i.qty * i.price, 0) + Math.ceil(fee / ppl.length / 25) * 25; });
+  return out;
+}
+const pic = (m, st = '') => m.photo ? `<div class="pic" style="background:center/cover url('${esc(m.photo)}');${st}"></div>` : `<div class="pic" style="${st}">${m.emoji}</div>`;
+function shrink(file, max = 520) {
+  return new Promise((res, rej) => {
+    const fr = new FileReader();
+    fr.onerror = rej;
+    fr.onload = () => {
+      const im = new Image(); im.onerror = rej;
+      im.onload = () => {
+        const k = Math.min(1, max / Math.max(im.width, im.height)), c = document.createElement('canvas');
+        c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
+        c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); res(c.toDataURL('image/jpeg', 0.72));
+      };
+      im.src = fr.result;
+    };
+    fr.readAsDataURL(file);
+  });
+}
+const etaMin = d => Math.round(20 + d * 4);
+const isDrink = m => /boisson/i.test(m.section);
 const cartCount = () => cartItems().reduce((s, i) => s + i.qty, 0);
 const cartSub = () => cartItems().reduce((s, i) => s + i.qty * i.price, 0);
 const visibleRestos = () => S.restos.filter(r => !r.suspended);
@@ -560,6 +657,8 @@ V.home = () => {
   const list = visibleRestos().filter(r => cat === 'tous' || r.cats.includes(cat))
     .sort((a, b) => (isOpen(b) - isOpen(a)) || km(a, here()) - km(b, here()));
   const u = me();
+  const best = visibleRestos().filter(isOpen).sort((a, b) => b.rating - a.rating)
+    .flatMap(r => r.menu.filter(m => m.popular && !m.off).map(m => ({ r, m }))).sort((a, b) => (!!b.m.photo - !!a.m.photo)).slice(0, 10);
   return {
     nav: 'home',
     h: `<div class="scr"><div class="top" style="flex-direction:column;align-items:stretch;gap:12px">
@@ -568,6 +667,12 @@ V.home = () => {
       <form class="search" onsubmit="event.preventDefault();go('#/explore?q='+encodeURIComponent(this.q.value))">${ic('search', 20)}<input name="q" placeholder="Rechercher un restaurant, un plat…"></form></div>
       <div class="pad">
       <div class="banner"><div class="sp"><h3>Des plats délicieux à portée de main</h3><p>Commandez maintenant, payez par Mobile Money.</p><button onclick="go('#/explore')">Voir les restaurants</button></div><div class="em">🍲</div></div>
+      <div class="quick">
+        <a href="#/budget">💰<b>Mon budget</b><span>Plats selon mon argent</span></a>
+        <a href="#/compare">⚖️<b>Comparer</b><span>Prix, notes, délais</span></a>
+        <a href="#" onclick="event.preventDefault();A.groupStart()">👥<b>En groupe</b><span>Chacun choisit, on partage</span></a>
+      </div>
+      ${best.length ? `<div class="h2">Les meilleurs plats</div><div class="best">${best.map(({ r, m }) => `<a href="#/resto/${r.id}">${pic(m, 'width:100%;height:104px;font-size:54px;border-radius:14px')}<b>${esc(m.name)}</b><span class="sm muted">${esc(r.name)}</span><span class="p">${F(m.price)}</span></a>`).join('')}</div>` : ''}
       <div class="cats">${CATS.map(([k, l, e]) => `<button class="cat ${cat === k ? 'on' : ''}" onclick="A.cat('${k}')"><i>${e}</i>${l}</button>`).join('')}</div>
       <div class="h2">Restaurants à proximité <a href="#/explore">Voir tout</a></div>
       ${list.map(restoCard).join('') || '<p class="muted">Aucun restaurant dans cette catégorie pour le moment.</p>'}
@@ -589,6 +694,8 @@ V.explore = (_, q) => {
         <button class="chip ${f.open ? 'on' : ''}" onclick="__filt('open',${!f.open})">${ic('clock', 16)} Ouvert maintenant</button>
         <button class="chip ${f.sort !== 'note' ? 'on' : ''}" onclick="__filt('sort','dist')">${ic('pin', 16)} Distance</button>
         <button class="chip ${f.sort === 'note' ? 'on' : ''}" onclick="__filt('sort','note')">${ic('star', 16)} Mieux notés</button>
+        <a class="chip" href="#/budget" style="text-decoration:none">💰 Budget</a>
+        <a class="chip" href="#/compare" style="text-decoration:none">⚖️ Comparer</a>
       </div>
       ${term ? `<p class="sm muted">${list.length} résultat(s) pour « ${esc(q.q)} »</p>` : ''}
       ${list.map(restoCard).join('') || '<p class="muted">Aucun résultat.</p>'}</div>${cartBar()}</div>`,
@@ -604,8 +711,9 @@ V.explore = (_, q) => {
 V.resto = (id, q) => {
   const r = resto(id); if (!r) return go('#/home');
   const tab = q.tab || 'menu', dist = km(r, here()), op = isOpen(r);
-  const inCart = did => S.cart && S.cart.rid === r.id ? S.cart.items[did] || 0 : 0;
-  const dish = m => `<div class="dish ${m.off ? 'off' : ''}"><div class="pic">${m.emoji}</div>
+  const inCart = did => S.cart && S.cart.rid === r.id ? S.cart.items[ckey(did)] || 0 : 0;
+  const grp = S.cart && S.cart.group && S.cart.rid === r.id;
+  const dish = m => `<div class="dish ${m.off ? 'off' : ''}">${pic(m)}
     <div class="sp"><b>${esc(m.name)}</b><small>${esc(m.desc)}</small><span class="p">${F(m.price)}</span></div>
     ${m.off ? '<span class="sm muted">Épuisé</span>' : inCart(m.id) ? `<div class="qty"><button onclick="A.add('${r.id}','${m.id}',-1)" aria-label="Retirer">${ic('minus', 18)}</button><span>${inCart(m.id)}</span><button class="add" onclick="A.add('${r.id}','${m.id}',1)" aria-label="Ajouter">${ic('plus', 18)}</button></div>`
       : `<div class="qty"><button class="add" onclick="A.add('${r.id}','${m.id}',1)" aria-label="Ajouter">${ic('plus', 18)}</button></div>`}</div>`;
@@ -637,6 +745,7 @@ V.resto = (id, q) => {
       <div class="sm muted" style="margin-top:3px">${kmTxt(dist)} • ${op ? `<span class="ok">Ouvert jusqu'à ${r.to === '00:00' ? 'minuit' : r.to.replace(':', 'h')}</span>` : `<span class="ko">Fermé • ouvre à ${r.from.replace(':', 'h')}</span>`}</div>
       <div class="chips" style="margin-top:10px">${r.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
       <div class="tabs">${[['menu', 'Menu'], ['avis', 'Avis'], ['infos', 'Infos']].map(([k, l]) => `<button class="${tab === k ? 'on' : ''}" onclick="history.replaceState(null,'','#/resto/${r.id}?tab=${k}');render()">${l}</button>`).join('')}</div>
+      ${grp && tab === 'menu' ? `<div class="whobar"><span class="sm muted">👥 Tu ajoutes pour :</span><div class="chips">${S.cart.people.map(w => `<button class="chip ${S.cart.who === w ? 'on' : ''}" onclick="A.who('${esc(w).replace(/'/g, '&#39;')}')">${esc(w)}</button>`).join('')}<button class="chip" onclick="A.addPerson()">${ic('plus', 14)} Personne</button></div></div>` : ''}
       ${body}</div></div>
       ${n ? `<div class="fixb"><div><a class="btn" href="#/cart">${ic('cart', 20)} Voir le panier (${n}) • ${F(cartSub())}</a></div></div>` : ''}`,
     after() {
@@ -653,13 +762,19 @@ V.cart = () => {
     h: `<div class="scr"><div class="top"><button class="ib" onclick="back('#/home')">${ic('back')}</button><h1>Mon panier</h1></div>
     <div class="pad" style="text-align:center;padding-top:60px"><div style="font-size:70px">🛒</div><h3>Ton panier est vide</h3><p class="muted">Choisis un restaurant et ajoute des plats.</p><div class="gap"></div><a class="btn" href="#/home">Voir les restaurants</a></div></div>`,
   };
-  const r = resto(S.cart.rid), sub = cartSub(), dist = km(r, here()), fee = deliveryFee(dist);
+  const r = resto(S.cart.rid), sub = cartSub(), dist = km(r, here()), fee = deliveryFee(dist), grp = !!S.cart.group;
+  const split = grp ? groupSplit(items, fee) : null;
+  const line = i => `<div class="dish">${pic(i)}<div class="sp"><b>${esc(i.name)}</b><span class="p">${F(i.price)}</span></div>
+      <div class="qty"><button onclick="A.add('${r.id}','${i.id}',-1${i.who ? `,'${esc(i.who).replace(/'/g, '&#39;')}'` : ''})">${ic('minus', 18)}</button><span>${i.qty}</span><button class="add" onclick="A.add('${r.id}','${i.id}',1${i.who ? `,'${esc(i.who).replace(/'/g, '&#39;')}'` : ''})">${ic('plus', 18)}</button></div></div>`;
   return {
     keepScroll: true,
     h: `<div class="scr" style="padding-bottom:120px"><div class="top"><button class="ib" onclick="back('#/home')">${ic('back')}</button><h1>Mon panier<small>${cartCount()} article(s) • ${esc(r.name)}</small></h1><button class="ib" onclick="A.clearCart()" aria-label="Vider">${ic('trash', 20)}</button></div>
-    <div class="pad">${items.map(i => `<div class="dish"><div class="pic">${i.emoji}</div><div class="sp"><b>${esc(i.name)}</b><span class="p">${F(i.price)}</span></div>
-      <div class="qty"><button onclick="A.add('${r.id}','${i.id}',-1)">${ic('minus', 18)}</button><span>${i.qty}</span><button class="add" onclick="A.add('${r.id}','${i.id}',1)">${ic('plus', 18)}</button></div></div>`).join('')}
+    <div class="pad">
+      <div class="card row" style="margin-bottom:12px;padding:12px">${ic('users', 22)}<div class="sp"><b>Commande groupée</b><div class="sm muted">${grp ? 'Chacun voit ce qu\'il doit payer' : 'Commander avec des amis et partager la note'}</div></div><button class="sw ${grp ? 'on' : ''}" onclick="A.${grp ? 'groupStop' : 'groupStart'}()" aria-label="Commande groupée"></button></div>
+      ${grp ? S.cart.people.map(w => { const mine = items.filter(i => i.who === w); return `<div class="h2" style="margin-top:6px">${esc(w)} <span class="sm muted" style="font-weight:600">${F(mine.reduce((t, i) => t + i.qty * i.price, 0))}</span></div>${mine.map(line).join('') || '<p class="sm muted" style="margin:0 0 10px">Rien pour l\'instant.</p>'}`; }).join('')
+        + `<button class="btn ghost" onclick="A.addPerson()">${ic('plus', 18)} Ajouter une personne</button>` : items.map(line).join('')}
       <a href="#/resto/${r.id}" class="btn ghost">${ic('plus', 18)} Ajouter d'autres plats</a>
+      ${grp && split ? `<div class="card" style="margin-top:8px"><b>Qui paie combien</b><div class="sm muted" style="margin:2px 0 8px">Ses plats + la livraison partagée</div>${Object.entries(split).map(([w, v]) => `<div class="row sm" style="padding:4px 0"><span class="sp">${esc(w)}</span><b>${F(v)}</b></div>`).join('')}</div>` : ''}
       <div class="card" style="margin-top:8px">
         <div class="row sm"><span class="sp muted">Sous-total</span><span>${F(sub)}</span></div><div style="height:8px"></div>
         <div class="row sm"><span class="sp muted">Livraison (${kmTxt(dist)})</span><span>${F(fee)}</span></div>
@@ -793,7 +908,7 @@ V.track = id => {
       <div style="font-size:34px;margin-top:6px;letter-spacing:6px">${[1, 2, 3, 4, 5].map(n => `<span style="cursor:pointer;color:${(o.rated || 0) >= n ? '#f5a300' : '#ddd'}" onclick="A.rate(${o.id},${n})">★</span>`).join('')}</div></div>` : ''}
     <div class="card" style="margin-top:12px">
       <div class="row"><b class="sp">${esc(o.rname)}</b>${obadge(o)}</div><div style="height:8px"></div>
-      ${o.items.map(i => `<div class="row sm" style="padding:3px 0"><span class="sp">${i.qty} × ${esc(i.name)}</span><span>${F(i.qty * i.price)}</span></div>`).join('')}
+      ${o.items.map(i => `<div class="row sm" style="padding:3px 0"><span class="sp">${i.who && o.group ? '<b>' + esc(i.who) + '</b> · ' : ''}${i.qty} × ${esc(i.name)}</span><span>${F(i.qty * i.price)}</span></div>`).join('')}
       <div class="row sm" style="padding:3px 0"><span class="sp muted">Livraison</span><span>${F(o.fee)}</span></div>
       <hr style="border:0;border-top:1px solid var(--line);margin:10px 0"><div class="row"><b class="sp">Total</b><b>${F(o.total)}</b></div>
       <div class="sm muted" style="margin-top:8px">${esc(o.pay.label)}${o.pay.paid ? ' • payé' : ' • à payer au livreur'}<br>${ic('pin', 14)} ${esc(o.address.label)}${o.address.note ? ' — ' + esc(o.address.note) : ''}</div>
@@ -871,6 +986,60 @@ V.account = () => {
   };
 };
 
+/* ---------- Budget ---------- */
+V.budget = (_, q) => {
+  const b = parseInt(q.b || S.budget || 2000, 10), withFee = q.f !== '0';
+  S.budget = b; save();
+  const set = (nb, nf) => `history.replaceState(null,'','#/budget?b=${nb}&f=${nf ? 1 : 0}');render()`;
+  const res = visibleRestos().filter(isOpen).flatMap(r => {
+    const fee = deliveryFee(km(r, here()));
+    return r.menu.filter(m => !m.off && !isDrink(m)).map(m => ({ r, m, fee, tot: m.price + (withFee ? fee : 0) }));
+  }).filter(x => x.tot <= b).sort((x, y) => y.m.price - x.m.price || km(x.r, here()) - km(y.r, here()));
+  return {
+    nav: 'explore',
+    h: `<div class="scr"><div class="top"><button class="ib" onclick="back('#/home')">${ic('back')}</button><h1>Mon budget<small>Qu'est-ce que je peux manger avec…</small></h1></div>
+    <div class="pad">
+      <form class="field" onsubmit="event.preventDefault();history.replaceState(null,'','#/budget?b='+(parseInt(this.b.value.replace(/\\D/g,''))||0)+'&f=${withFee ? 1 : 0}');render()"><b style="color:var(--ink)">💰</b><input name="b" inputmode="numeric" value="${b}" aria-label="Budget"><span>F</span><button class="chip on" style="margin:6px 0">OK</button></form>
+      <div class="chips">${[1000, 1500, 2000, 3000, 5000, 10000].map(v => `<button class="chip ${v === b ? 'on' : ''}" onclick="${set(v, withFee)}">${fmt(v)} F</button>`).join('')}</div>
+      <div class="card row" style="margin:12px 0;padding:12px"><span class="sp sm"><b>Livraison comprise</b><div class="muted">Le budget couvre le plat + la livraison</div></span><button class="sw ${withFee ? 'on' : ''}" onclick="${set(b, !withFee)}" aria-label="Livraison comprise"></button></div>
+      <div class="sm muted" style="margin-bottom:8px">${res.length} plat(s) possible(s) avec ${F(b)}</div>
+      ${res.map(({ r, m, fee, tot }) => `<div class="dish">${pic(m)}<a class="sp" href="#/resto/${r.id}" style="text-decoration:none;color:inherit"><b>${esc(m.name)}</b><small>${esc(r.name)} • ${kmTxt(km(r, here()))}</small><span class="p">${F(m.price)}${withFee ? ` <span class="sm muted" style="font-weight:500">+ ${F(fee)} livraison = ${F(tot)}</span>` : ''}</span></a>
+        <div class="qty"><button class="add" onclick="A.add('${r.id}','${m.id}',1)" aria-label="Ajouter">${ic('plus', 18)}</button></div></div>`).join('')
+        || `<div style="text-align:center;padding:30px 0"><div style="font-size:56px">🪙</div><p class="muted">Rien d'ouvert à ce prix pour le moment.${withFee ? ' Essaie sans la livraison comprise.' : ''}</p></div>`}
+    </div>${cartBar()}</div>`,
+  };
+};
+
+/* ---------- Comparaison ---------- */
+V.compare = () => {
+  if (!S.cmp || !S.cmp.length) S.cmp = visibleRestos().filter(isOpen).sort((a, b) => km(a, here()) - km(b, here())).slice(0, 2).map(r => r.id);
+  const sel = S.cmp.map(resto).filter(Boolean);
+  const data = sel.map(r => {
+    const d = km(r, here()), plats = r.menu.filter(m => !isDrink(m) && !m.off);
+    return { r, d, fee: deliveryFee(d), eta: etaMin(d), min: Math.min(...plats.map(m => m.price)), avg: Math.round(plats.reduce((t, m) => t + m.price, 0) / (plats.length || 1) / 50) * 50, n: plats.length, cheap: plats.slice().sort((a, b) => a.price - b.price)[0] };
+  });
+  const bestOf = (k, hi) => { const v = data.map(x => x[k]); return hi ? Math.max(...v) : Math.min(...v); };
+  const row = (label, k, show, hi) => `<tr><td>${label}</td>${data.map(x => `<td class="${data.length > 1 && x[k] === bestOf(k, hi) ? 'best' : ''}">${show(x)}</td>`).join('')}</tr>`;
+  data.forEach(x => { x.rating = x.r.rating; });
+  return {
+    nav: 'explore',
+    h: `<div class="scr"><div class="top"><button class="ib" onclick="back('#/home')">${ic('back')}</button><h1>Comparer<small>Choisis jusqu'à 3 restaurants</small></h1></div>
+    <div class="pad"><div class="chips" style="flex-wrap:wrap">${visibleRestos().map(r => `<button class="chip ${S.cmp.includes(r.id) ? 'on' : ''}" onclick="A.cmp('${r.id}')">${r.emoji} ${esc(r.name)}</button>`).join('')}</div>
+    ${data.length ? `<div style="overflow-x:auto;margin-top:12px"><table class="cmp"><tr><td></td>${data.map(x => `<th><div style="font-size:30px">${x.r.emoji}</div>${esc(x.r.name)}</th>`).join('')}</tr>
+      ${row('Note', 'rating', x => '★ ' + String(x.r.rating).replace('.', ',') + `<div class="muted" style="font-weight:400">${x.r.nrev} avis</div>`, true)}
+      ${row('Distance', 'd', x => kmTxt(x.d))}
+      ${row('Livraison', 'fee', x => F(x.fee))}
+      ${row('Délai estimé', 'eta', x => '~' + x.eta + ' min')}
+      ${row('Plat le moins cher', 'min', x => F(x.min) + `<div class="muted" style="font-weight:400">${esc(x.cheap ? x.cheap.name : '')}</div>`)}
+      ${row('Prix moyen d\'un plat', 'avg', x => F(x.avg))}
+      ${row('Choix de plats', 'n', x => x.n, true)}
+      <tr><td>Horaires</td>${data.map(x => `<td>${isOpen(x.r) ? '<span class="ok">Ouvert</span>' : '<span class="ko">Fermé</span>'}<div class="muted">${x.r.from}–${x.r.to}</div></td>`).join('')}</tr>
+      <tr><td></td>${data.map(x => `<td><a class="btn" style="padding:9px 6px;font-size:13px" href="#/resto/${x.r.id}">Voir</a></td>`).join('')}</tr>
+    </table></div><p class="sm muted">En vert : le meilleur de chaque ligne. Le délai est une estimation (préparation + trajet).</p>` : '<p class="muted" style="margin-top:14px">Touche les restaurants ci-dessus pour les comparer.</p>'}
+    </div></div>`,
+  };
+};
+
 /* ---------- Espace restaurant ---------- */
 function backToClient() { return `<button class="ib" onclick="A.space('client')" aria-label="Quitter l'espace">${ic('swap', 20)}</button>`; }
 const today = t => new Date(t).toDateString() === new Date().toDateString();
@@ -890,7 +1059,7 @@ V.rd = tab => {
     body = groups.map(([k, l]) => { const g = mine.filter(o => o.status === k); return g.length ? `<div class="h2">${l} (${g.length})</div>${g.map(oc).join('')}` : ''; }).join('') || '<p class="muted" style="text-align:center;padding-top:30px">Aucune commande pour le moment.</p>';
   } else if (tab === 'menu') {
     body = `<button class="btn" style="margin:14px 0" onclick="A.rEdit()">${ic('plus', 20)} Ajouter un plat</button>` +
-      r.menu.map(m => `<div class="dish ${m.off ? 'off' : ''}" style="opacity:1"><div class="pic">${m.emoji}</div><div class="sp" onclick="A.rEdit('${m.id}')"><b>${esc(m.name)}</b><small>${esc(m.section)}</small><span class="p">${F(m.price)}</span></div>
+      r.menu.map(m => `<div class="dish ${m.off ? 'off' : ''}" style="opacity:1">${pic(m)}<div class="sp" onclick="A.rEdit('${m.id}')"><b>${esc(m.name)}</b><small>${esc(m.section)}</small><span class="p">${F(m.price)}</span></div>
       <div style="text-align:center"><button class="sw ${m.off ? '' : 'on'}" onclick="A.rDish('${m.id}')" aria-label="Disponible"></button><div class="sm muted" style="font-size:11px">${m.off ? 'Épuisé' : 'Dispo'}</div></div></div>`).join('');
   } else {
     body = `<div class="stats" style="margin-top:14px">
@@ -927,7 +1096,7 @@ V.ro = id => {
       <a class="ib" href="${telHref(o.cphone)}" style="color:var(--green)">${ic('phone', 20)}</a></div>
       <div class="sm muted" style="margin-top:8px">${ic('pin', 14)} ${esc(o.address.label)}${o.address.note ? ' — ' + esc(o.address.note) : ''}</div></div>
     <div class="card" style="margin-top:12px"><div class="sm muted" style="margin-bottom:6px">Articles</div>
-      ${o.items.map(i => `<div class="row" style="padding:5px 0"><span style="font-size:22px">${i.emoji}</span><span class="sp"><b>${i.qty} ×</b> ${esc(i.name)}</span><span>${F(i.qty * i.price)}</span></div>`).join('')}
+      ${o.items.map(i => `<div class="row" style="padding:5px 0"><span style="font-size:22px">${i.emoji}</span><span class="sp">${i.who && o.group ? esc(i.who) + ' · ' : ''}<b>${i.qty} ×</b> ${esc(i.name)}</span><span>${F(i.qty * i.price)}</span></div>`).join('')}
       <hr style="border:0;border-top:1px solid var(--line);margin:10px 0">
       <div class="row"><b class="sp">Total plats</b><b>${F(o.sub)}</b></div>
       <div class="row sm" style="margin-top:4px"><span class="sp muted">Commission FoodConnect (7 %)</span><span>− ${F(o.commission)}</span></div>

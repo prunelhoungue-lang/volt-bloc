@@ -24,7 +24,7 @@ jobs:
         working-directory: .
         run: |
           mkdir -p foodconnect-app/www
-          cp foodconnect/index.html foodconnect/app.js foodconnect/leaflet.js foodconnect/leaflet.css foodconnect-app/www/
+          cp -r foodconnect/. foodconnect-app/www/
           cat > foodconnect-app/package.json <<'EOF'
           {
             "name": "foodconnect",
