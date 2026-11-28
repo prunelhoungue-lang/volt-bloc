@@ -110,6 +110,33 @@ input,select,textarea{border:1px solid var(--line);border-radius:10px;padding:10
    RÉGLAGES DE LA BOUTIQUE — à changer pour chaque client
    ============================================================ */
 const BOUTIQUES={
+ tout:{
+  nom:'Votre Boutique',slogan:'Votre nom ici · Vos produits · Vos prix',logo:'🛍️',couleur:'#0f766e',
+  infos:['🟢 Ouvert · 8 h – 21 h','🚚 Livraison partout','💬 Commande sur WhatsApp'],
+  livraison:1000,whatsapp:'2290162249923',sheet:'',
+  produits:`categorie;nom;description;prix;ancien_prix;image;options;disponible
+Vêtements;Robe pagne wax;Coupe évasée;12000;15000;👗;S,M,L,XL;OUI
+Vêtements;Ensemble homme;Chemise + pantalon;11000;;👔;M,L,XL,XXL;OUI
+Vêtements;Jean;Coupe droite;7000;;👖;28,30,32,34,36;OUI
+Chaussures;Baskets;Semelle confortable;15000;;👟;39,40,41,42,43,44;OUI
+Chaussures;Sandales femme;Légères;6000;;👡;37,38,39,40;NON
+Sacs & accessoires;Sac à main;Grand format;14000;;👜;Noir,Marron,Beige;OUI
+Sacs & accessoires;Casquette;Taille unique;3000;;🧢;Noir,Blanc,Rouge;OUI
+Enfants;Ensemble enfant;Haut + short;9000;;🧸;2 ans,3 ans,4 ans,5 ans,6 ans;OUI
+Beauté;Perruque lisse;Lace frontale;25000;30000;💇🏾‍♀️;Noir,Châtain,Blond;OUI
+Beauté;Mèches;Paquet de 3;3000;;🧶;1,1B,27,30;OUI
+Beauté;Beurre de karité;Pot 250 g;2500;;🧴;;OUI
+Beauté;Parfum;Flacon 100 ml;8000;;🌸;;OUI
+Montres & bijoux;Montre + chaîne;Coffret cadeau;15000;;⌚;;OUI
+Montres & bijoux;Boucles d'oreilles;Dorées;2000;;💍;;OUI
+Téléphones;Écouteurs Bluetooth;Autonomie 20 h;6000;;🎧;Blanc,Noir;OUI
+Téléphones;Chargeur rapide;Type-C;3000;;🔌;;OUI
+Électrique;Ampoule LED 12 W;Lumière blanche;800;1200;💡;;OUI
+Électrique;Rallonge 4 prises;Câble 3 m;3500;;🔋;;OUI
+Maison;Ventilateur sur pied;3 vitesses;18000;;🌀;;OUI
+Maison;Marmite inox;Lot de 3;12000;;🍲;;OUI
+Alimentation;Jus de bissap;Fait maison, 50 cl;300;;🧃;;OUI
+Alimentation;Gâteau d'anniversaire;Sur commande;10000;;🎂;Chocolat,Vanille,Fraise;OUI`},
  mode:{
   nom:'Awa Fashion',slogan:'Vêtements, chaussures & sacs · Porto-Novo',logo:'👗',couleur:'#be185d',
   infos:['🟢 Ouvert · 9 h – 20 h','🚚 Livraison Porto-Novo & Cotonou'],
@@ -166,6 +193,31 @@ Robes décontractées;Robe fleurie rouge;Ceinturée, très tendance;2000;;🌺;M
 Robes décontractées;Robe rayée multicolore;Col en V, manches longues;1500;;🌈;S,M;NON
 Robes décontractées;Robe noire à pois;Manches nouées;2000;;⚫;S,M;OUI
 Robes décontractées;Robe bicolore fleurie;Coupe droite;2000;;🌸;L;OUI`},
+ abeni:{
+  apercu:'Aperçu préparé par Prinel pour ABÊNI Wigs — ce n\'est pas encore la boutique officielle.',
+  nom:'ABÊNI Wigs',slogan:'Perruques & accessoires · Porto-Novo',logo:'💇🏾‍♀️',couleur:'#a21caf',
+  infos:['💸 Prix dégressifs dès 3 pièces','🎥 Nos modèles sur TikTok','🚚 Livraison'],
+  livraison:1000,whatsapp:'2290162249923',sheet:'',
+  produits:`categorie;nom;description;prix;ancien_prix;image;options;disponible
+Perruques;Perruque closure effet cheveux bébé;7 200 F l'unité dès 3 pièces;8000;;💇🏾‍♀️;;OUI
+Perruques;Perruque frontale normale;Disponible en 3 couleurs;7500;;👩🏾;Noir,Châtain,Bordeaux;OUI
+Perruques;Perruque frontale normale (longue);9 000 F l'unité dès 3 pièces;10000;;👩🏾‍🦱;;OUI
+Perruques;Perruque Omotola à frange;Disponible en 3 couleurs;5200;;💁🏾‍♀️;Noir,Châtain,Blond;OUI
+Perruques;Perruque à bande;Toute la souplesse 👌;7000;;🧕🏾;;NON
+Perruques;Perruque premium;Qualité supérieure;17500;;👸🏾;;OUI
+Packs;Pack perruque + lotion + peigne + gloss;Tout pour être prête;10800;;🎁;;OUI
+Accessoires;Bande;Pour tenir la perruque;1200;;🎀;;OUI`},
+ toscoff:{
+  apercu:'Aperçu préparé par Prinel pour Toscoff Achat — ce n\'est pas encore la boutique officielle.',
+  nom:'Toscoff Achat',slogan:'Montres, chaînes & ensembles · Porto-Novo',logo:'⌚',couleur:'#1f2937',
+  infos:['🔥 Disponible immédiatement','💎 Montres & chaînes','🚚 Livraison'],
+  livraison:1000,whatsapp:'2290162249923',sheet:'',
+  produits:`categorie;nom;description;prix;ancien_prix;image;options;disponible
+Montres & chaînes;Montre cadran rouge + chaîne;Coffret montre strass + chaîne croix;15000;;⌚;;OUI
+Montres & chaînes;Montre cadran bleu + chaîne;Coffret montre strass + chaîne maille;18000;;💎;;OUI
+Montres & chaînes;Chaîne maille cubaine;Argentée, brillante;6000;;⛓️;;NON
+Ensembles;Ensemble veste + pantalon;Noir et beige, brodé;11000;;🧥;M,L,XL;OUI
+Ensembles;Débardeur bleu + pantalon blanc;Tenue d'été;11000;;🎽;M,L,XL;OUI`},
  elec:{
   nom:'Volt Électricité',slogan:'Matériel électrique · Porto-Novo',logo:'⚡',couleur:'#b45309',
   infos:['🟢 Ouvert · 8 h – 19 h','🚚 Livraison sur chantier'],
